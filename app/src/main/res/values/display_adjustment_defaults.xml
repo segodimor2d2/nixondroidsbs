@@ -4,12 +4,12 @@
          Existing saved settings are preserved when updating the app. -->
 
     <!-- General padding in dp: 0 to 120. -->
-    <integer name="default_screen_padding_dp">0</integer>
+    <integer name="default_screen_padding_dp">100</integer>
 
     <!-- Padding steps: each step is 0.5%; 0 to 80 means 0% to 40%. -->
-    <integer name="default_side_padding_steps">0</integer>
-    <integer name="default_left_inner_padding_steps">0</integer>
-    <integer name="default_right_inner_padding_steps">0</integer>
+    <integer name="default_side_padding_steps">10</integer>
+    <integer name="default_left_inner_padding_steps">18</integer>
+    <integer name="default_right_inner_padding_steps">18</integer>
 
     <!-- Signed VR alignment steps: each step is 0.5%.
          -50 to 50 means -25% to 25%; 0 means no offset. -->
