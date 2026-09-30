@@ -1005,6 +1005,22 @@ public final class TerminalView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        renderTerminal(canvas);
+        if (mMirrorView != null) mMirrorView.invalidate();
+        if (mEmulator != null) renderTextSelection();
+    }
+
+    private TerminalMirrorView mMirrorView;
+
+    /** Register the second eye. Only this TerminalView owns input and PTY resizing. */
+    public void setMirrorView(TerminalMirrorView mirrorView) {
+        mMirrorView = mirrorView;
+        mirrorView.setSource(this);
+        invalidate();
+    }
+
+    /** Draw the same emulator, viewport and selection into either eye without screen capture. */
+    void renderTerminal(Canvas canvas) {
         if (mEmulator == null) {
             canvas.drawColor(0XFF000000);
         } else {
@@ -1016,8 +1032,6 @@ public final class TerminalView extends View {
 
             mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3]);
 
-            // render the text selection handles
-            renderTextSelection();
         }
     }
 

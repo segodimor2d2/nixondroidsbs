@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -489,12 +490,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         // Set termux terminal view
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
+        mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
+        updateTerminalOrientation(getResources().getConfiguration());
 
         if (mTermuxTerminalViewClient != null)
             mTermuxTerminalViewClient.onCreate();
 
         if (mTermuxTerminalSessionActivityClient != null)
             mTermuxTerminalSessionActivityClient.onCreate();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        updateTerminalOrientation(newConfig);
+    }
+
+    private void updateTerminalOrientation(Configuration configuration) {
+        View mirror = findViewById(R.id.terminal_mirror_view);
+        if (mirror != null) {
+            mirror.setVisibility(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+                ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void setTermuxSessionsListView() {
