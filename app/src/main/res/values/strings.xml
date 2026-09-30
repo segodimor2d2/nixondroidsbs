@@ -248,4 +248,5 @@
     <string name="reset_display_adjustments">Reset</string>
     <string name="show_display_adjustments">Show adjustments</string>
     <string name="hide_display_adjustments">Hide adjustments</string>
+    <string name="portrait_screen_padding_value">allPadV: %1$d dp</string>
 </resources>

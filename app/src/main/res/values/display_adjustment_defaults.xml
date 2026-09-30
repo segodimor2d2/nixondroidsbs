@@ -8,6 +8,8 @@
 
     <!-- General padding in dp: 0 to 120. -->
     <integer name="default_screen_padding_dp">100</integer>
+    <!-- allPadV: independent general padding for portrait, in dp (0 to 120). -->
+    <integer name="default_portrait_screen_padding_dp">5</integer>
 
     <!-- Padding steps: each step is 0.5%; 0 to 80 means 0% to 40%. -->
     <integer name="default_side_padding_steps">10</integer>

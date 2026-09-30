@@ -104,6 +104,47 @@
                         android:orientation="vertical">
 
                 <LinearLayout
+                    android:id="@+id/portrait_padding_controls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:id="@+id/portrait_screen_padding_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+                            <Button
+                                android:textColor="@android:color/white"
+                                android:backgroundTint="@android:color/black"
+                                app:backgroundTint="@android:color/black"
+                                android:id="@+id/portrait_screen_padding_minus"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="@string/decrease_display_adjustment"
+                                android:text="−" />
+                            <Space
+                                android:layout_width="0dp"
+                                android:layout_weight="1"
+                                android:layout_height="1dp" />
+                            <Button
+                                android:textColor="@android:color/white"
+                                android:backgroundTint="@android:color/black"
+                                app:backgroundTint="@android:color/black"
+                                android:id="@+id/portrait_screen_padding_plus"
+                                android:layout_width="48dp"
+                                android:layout_height="48dp"
+                                android:contentDescription="@string/increase_display_adjustment"
+                                android:text="+" />
+                        </LinearLayout>
+
+                </LinearLayout>
+
+                <LinearLayout
                     android:id="@+id/vr_alignment_controls"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

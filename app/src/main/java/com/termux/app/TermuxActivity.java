@@ -195,6 +195,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private static final String ARG_ACTIVITY_RECREATED = "activity_recreated";
 
     private int mScreenPadding;
+    private int mPortraitScreenPadding;
     private int mSidePadding;
     private int mVrAlignment = 50;
     private int mLeftInnerPadding;
@@ -555,6 +556,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         applyTerminalFontSize();
         updateDrawerLayout(landscape);
         findViewById(R.id.vr_alignment_controls).setVisibility(landscape ? View.VISIBLE : View.GONE);
+        findViewById(R.id.portrait_padding_controls).setVisibility(landscape ? View.GONE : View.VISIBLE);
         int progress = mVrAlignment;
         mTerminalView.setStereoOffset(landscape ? (progress - 50) * 0.005f : 0);
         View mirror = findViewById(R.id.terminal_eye_right);
@@ -649,16 +651,17 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private void initializeAdjustmentDefaults(boolean reset) {
         android.content.SharedPreferences preferences = getSharedPreferences("vr_alignment", MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = preferences.edit();
-        String[] keys = { "screen_padding", "eye_padding", "left_inner_padding",
+        String[] keys = { "portrait_screen_padding", "screen_padding", "eye_padding", "left_inner_padding",
             "right_inner_padding", "alignment_steps" };
         int[] defaults = {
+            getResources().getInteger(R.integer.default_portrait_screen_padding_dp),
             getResources().getInteger(R.integer.default_screen_padding_dp),
             getResources().getInteger(R.integer.default_side_padding_steps),
             getResources().getInteger(R.integer.default_left_inner_padding_steps),
             getResources().getInteger(R.integer.default_right_inner_padding_steps),
             50 + getResources().getInteger(R.integer.default_vr_alignment_steps)
         };
-        int[] maximums = { 120, 80, 80, 80, 100 };
+        int[] maximums = { 120, 120, 80, 80, 80, 100 };
         for (int i = 0; i < keys.length; i++) {
             if (reset || !preferences.contains(keys[i])) {
                 int value = defaults[i];
@@ -671,6 +674,11 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void setAdjustmentControls() {
+        setAdjustmentButtons("portrait_screen_padding", 120,
+            getResources().getInteger(R.integer.default_portrait_screen_padding_dp),
+            R.id.portrait_screen_padding_label, R.string.portrait_screen_padding_value,
+            R.id.portrait_screen_padding_minus, R.id.portrait_screen_padding_plus,
+            false, value -> mPortraitScreenPadding = value);
         setAdjustmentButtons("screen_padding", 120, getResources().getInteger(R.integer.default_screen_padding_dp), R.id.screen_padding_label,
             R.string.screen_padding_value, R.id.screen_padding_minus, R.id.screen_padding_plus,
             false, value -> mScreenPadding = value);
@@ -718,9 +726,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private void updateScreenPadding() {
         boolean landscape = getResources().getConfiguration().orientation
             == Configuration.ORIENTATION_LANDSCAPE;
-        // These controls belong to the horizontal layout. Keep their saved values,
-        // but remove their insets when returning to portrait.
-        int general = landscape ? mScreenPadding : 0;
+        // General padding is saved independently for each orientation.
+        int general = landscape ? mScreenPadding : mPortraitScreenPadding;
         int pixels = Math.round(general * getResources().getDisplayMetrics().density);
         View screen = findViewById(R.id.activity_termux_root_relative_layout);
         int progress = mSidePadding;
