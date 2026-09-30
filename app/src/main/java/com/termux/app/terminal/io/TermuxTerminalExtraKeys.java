@@ -19,6 +19,8 @@ import com.termux.shared.termux.terminal.io.TerminalExtraKeys;
 import com.termux.view.TerminalView;
 
 import org.json.JSONException;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
 
@@ -62,13 +64,13 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
                 extraKeysStyle = TermuxPropertyConstants.DEFAULT_IVALUE_EXTRA_KEYS_STYLE;
             }
 
-            mExtraKeysInfo = new ExtraKeysInfo(extrakeys, extraKeysStyle, ExtraKeysConstants.CONTROL_CHARS_ALIASES);
+            mExtraKeysInfo = new ExtraKeysInfo(withDrawerButton(extrakeys), extraKeysStyle, ExtraKeysConstants.CONTROL_CHARS_ALIASES);
         } catch (JSONException e) {
             Logger.showToast(mActivity, "Could not load and set the \"" + TermuxPropertyConstants.KEY_EXTRA_KEYS + "\" property from the properties file: " + e.toString(), true);
             Logger.logStackTraceWithMessage(LOG_TAG, "Could not load and set the \"" + TermuxPropertyConstants.KEY_EXTRA_KEYS + "\" property from the properties file: ", e);
 
             try {
-                mExtraKeysInfo = new ExtraKeysInfo(TermuxPropertyConstants.DEFAULT_IVALUE_EXTRA_KEYS, TermuxPropertyConstants.DEFAULT_IVALUE_EXTRA_KEYS_STYLE, ExtraKeysConstants.CONTROL_CHARS_ALIASES);
+                mExtraKeysInfo = new ExtraKeysInfo(withDrawerButton(TermuxPropertyConstants.DEFAULT_IVALUE_EXTRA_KEYS), TermuxPropertyConstants.DEFAULT_IVALUE_EXTRA_KEYS_STYLE, ExtraKeysConstants.CONTROL_CHARS_ALIASES);
             } catch (JSONException e2) {
                 Logger.showToast(mActivity, "Can't create default extra keys",true);
                 Logger.logStackTraceWithMessage(LOG_TAG, "Could create default extra keys: ", e);
@@ -79,6 +81,38 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
 
     public ExtraKeysInfo getExtraKeysInfo() {
         return mExtraKeysInfo;
+    }
+
+    /** Keep the menu accessible even when the user has configured a custom extra-key layout. */
+    private static String withDrawerButton(String keys) throws JSONException {
+        JSONArray rows = new JSONArray(keys);
+        int escapeRow = -1;
+        int escapeColumn = -1;
+        for (int row = 0; row < rows.length(); row++) {
+            JSONArray buttons = rows.getJSONArray(row);
+            for (int column = 0; column < buttons.length(); column++) {
+                Object button = buttons.get(column);
+                String key = button instanceof JSONObject
+                    ? ((JSONObject) button).optString("key") : button.toString();
+                if ("DRAWER".equals(key)) return keys;
+                if (escapeRow < 0 && "ESC".equals(key)) {
+                    escapeRow = row;
+                    escapeColumn = column;
+                }
+            }
+        }
+        if (rows.length() == 0) return keys;
+        int targetRow = escapeRow >= 0 ? escapeRow : 0;
+        int insertion = escapeColumn + 1;
+        JSONArray original = rows.getJSONArray(targetRow);
+        JSONArray updated = new JSONArray();
+        JSONObject drawer = new JSONObject().put("key", "DRAWER").put("display", "☰");
+        for (int column = 0; column <= original.length(); column++) {
+            if (column == insertion) updated.put(drawer);
+            if (column < original.length()) updated.put(original.get(column));
+        }
+        rows.put(targetRow, updated);
+        return rows.toString();
     }
 
     @SuppressLint("RtlHardcoded")

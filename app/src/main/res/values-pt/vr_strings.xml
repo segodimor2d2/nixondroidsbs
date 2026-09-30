@@ -3,8 +3,12 @@
     <string name="vr_alignment_value">Alinhamento VR: %1$.1f%%</string>
     <string name="screen_padding">Padding geral</string>
     <string name="screen_padding_value">Padding geral: %1$d dp</string>
-    <string name="eye_padding">Padding lateral por olho</string>
-    <string name="eye_padding_value">Padding lateral por olho: %1$.1f%%</string>
+    <string name="eye_padding">Padding lateral da tela</string>
+    <string name="eye_padding_value">Padding lateral da tela: %1$.1f%%</string>
     <string name="decrease_display_adjustment">Diminuir ajuste</string>
     <string name="increase_display_adjustment">Aumentar ajuste</string>
+    <string name="left_inner_padding">Terminal esquerdo: padding à direita</string>
+    <string name="left_inner_padding_value">Terminal esquerdo: padding à direita: %1$.1f%%</string>
+    <string name="right_inner_padding">Terminal direito: padding à esquerda</string>
+    <string name="right_inner_padding_value">Terminal direito: padding à esquerda: %1$.1f%%</string>
 </resources>

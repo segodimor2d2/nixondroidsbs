@@ -498,11 +498,25 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             R.string.screen_padding_value, "screen_padding", false);
         setPaddingControl(R.id.eye_padding_slider, R.id.eye_padding_label,
             R.string.eye_padding_value, "eye_padding", true);
+        setPaddingControl(R.id.left_inner_padding_slider, R.id.left_inner_padding_label,
+            R.string.left_inner_padding_value, "left_inner_padding", true);
+        setPaddingControl(R.id.right_inner_padding_slider, R.id.right_inner_padding_label,
+            R.string.right_inner_padding_value, "right_inner_padding", true);
+        setSliderButtons(R.id.left_inner_padding_slider, R.id.left_inner_padding_minus,
+            R.id.left_inner_padding_plus);
+        setSliderButtons(R.id.right_inner_padding_slider, R.id.right_inner_padding_minus,
+            R.id.right_inner_padding_plus);
+        for (int eyeId : new int[] { R.id.terminal_eye_left, R.id.terminal_eye_right }) {
+            findViewById(eyeId).addOnLayoutChangeListener((v, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (right - left != oldRight - oldLeft) updateInnerPadding();
+            });
+        }
         setSliderButtons(R.id.screen_padding_slider, R.id.screen_padding_minus, R.id.screen_padding_plus);
         setSliderButtons(R.id.eye_padding_slider, R.id.eye_padding_minus, R.id.eye_padding_plus);
         setSliderButtons(R.id.vr_alignment_slider, R.id.vr_alignment_minus, R.id.vr_alignment_plus);
-        View leftEye = findViewById(R.id.terminal_eye_left);
-        leftEye.addOnLayoutChangeListener((v, left, top, right, bottom,
+        View screen = findViewById(R.id.activity_termux_root_relative_layout);
+        screen.addOnLayoutChangeListener((v, left, top, right, bottom,
             oldLeft, oldTop, oldRight, oldBottom) -> {
             if (right - left != oldRight - oldLeft) updateScreenPadding();
         });
@@ -527,6 +541,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void updateTerminalOrientation(Configuration configuration) {
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        updateDrawerLayout(landscape);
         findViewById(R.id.vr_alignment_controls).setVisibility(landscape ? View.VISIBLE : View.GONE);
         int progress = ((SeekBar) findViewById(R.id.vr_alignment_slider)).getProgress();
         mTerminalView.setStereoOffset(landscape ? (progress - 50) * 0.005f : 0);
@@ -536,6 +551,52 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 ? View.VISIBLE : View.GONE);
         }
         updateScreenPadding();
+    }
+
+    private void updateDrawerLayout(boolean landscape) {
+        // Programmatic open/close still works while gesture dragging is locked.
+        if (getDrawer().getDrawerLockMode(Gravity.LEFT) != DrawerLayout.LOCK_MODE_LOCKED_CLOSED)
+            getDrawer().setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        View drawer = findViewById(R.id.left_drawer);
+        drawer.getBackground().mutate().setAlpha(153); // 60% opacity, 40% transparency.
+        ViewGroup.LayoutParams drawerParams = drawer.getLayoutParams();
+        int width = Math.round((landscape ? 480 : 240)
+            * getResources().getDisplayMetrics().density);
+        if (drawerParams.width != width) {
+            drawerParams.width = width;
+            drawer.setLayoutParams(drawerParams);
+        }
+        View controls = findViewById(R.id.display_adjustment_scroll);
+        ViewGroup.LayoutParams controlsParams = controls.getLayoutParams();
+        int height = landscape ? ViewGroup.LayoutParams.WRAP_CONTENT
+            : Math.round(140 * getResources().getDisplayMetrics().density);
+        if (controlsParams.height != height) {
+            controlsParams.height = height;
+            controls.setLayoutParams(controlsParams);
+        }
+        arrangeAdjustmentLabel(R.id.screen_padding_label, R.id.screen_padding_slider, landscape);
+        arrangeAdjustmentLabel(R.id.eye_padding_label, R.id.eye_padding_slider, landscape);
+        arrangeAdjustmentLabel(R.id.vr_alignment_label, R.id.vr_alignment_slider, landscape);
+        arrangeAdjustmentLabel(R.id.left_inner_padding_label, R.id.left_inner_padding_slider, landscape);
+        arrangeAdjustmentLabel(R.id.right_inner_padding_label, R.id.right_inner_padding_slider, landscape);
+    }
+
+    private void arrangeAdjustmentLabel(int labelId, int sliderId, boolean landscape) {
+        View label = findViewById(labelId);
+        ViewGroup row = (ViewGroup) findViewById(sliderId).getParent();
+        ViewGroup section = (ViewGroup) row.getParent();
+        ViewGroup target = landscape ? row : section;
+        if (label.getParent() != target) {
+            ((ViewGroup) label.getParent()).removeView(label);
+            target.addView(label, landscape ? 0 : section.indexOfChild(row));
+        }
+        ViewGroup.LayoutParams params = label.getLayoutParams();
+        int width = landscape ? Math.round(140 * getResources().getDisplayMetrics().density)
+            : ViewGroup.LayoutParams.MATCH_PARENT;
+        if (params.width != width) {
+            params.width = width;
+            label.setLayoutParams(params);
+        }
     }
 
     private void setPaddingControl(int sliderId, int labelId, int formatId,
@@ -570,16 +631,27 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private void updateScreenPadding() {
         int general = ((SeekBar) findViewById(R.id.screen_padding_slider)).getProgress();
         int pixels = Math.round(general * getResources().getDisplayMetrics().density);
-        findViewById(R.id.activity_termux_root_relative_layout)
-            .setPadding(pixels, pixels, pixels, pixels);
+        View screen = findViewById(R.id.activity_termux_root_relative_layout);
+        boolean landscape = getResources().getConfiguration().orientation
+            == Configuration.ORIENTATION_LANDSCAPE;
+        int progress = ((SeekBar) findViewById(R.id.eye_padding_slider)).getProgress();
+        int availableWidth = Math.max(0, screen.getWidth() - 2 * pixels);
+        int side = landscape ? Math.round(availableWidth * progress * 0.005f) : 0;
+        screen.setPadding(pixels + side, pixels, pixels + side, pixels);
+        updateInnerPadding();
+    }
+
+    private void updateInnerPadding() {
         boolean landscape = getResources().getConfiguration().orientation
             == Configuration.ORIENTATION_LANDSCAPE;
         View leftEye = findViewById(R.id.terminal_eye_left);
         View rightEye = findViewById(R.id.terminal_eye_right);
-        int progress = ((SeekBar) findViewById(R.id.eye_padding_slider)).getProgress();
-        int side = landscape ? Math.round(leftEye.getWidth() * progress * 0.005f) : 0;
-        leftEye.setPadding(side, 0, side, 0);
-        rightEye.setPadding(side, 0, side, 0);
+        int leftProgress = ((SeekBar) findViewById(R.id.left_inner_padding_slider)).getProgress();
+        int rightProgress = ((SeekBar) findViewById(R.id.right_inner_padding_slider)).getProgress();
+        int leftInset = landscape ? Math.round(leftEye.getWidth() * leftProgress * 0.005f) : 0;
+        int rightInset = landscape ? Math.round(rightEye.getWidth() * rightProgress * 0.005f) : 0;
+        leftEye.setPadding(0, 0, leftInset, 0);
+        rightEye.setPadding(rightInset, 0, 0, 0);
     }
 
     private void setVrAlignmentControls() {

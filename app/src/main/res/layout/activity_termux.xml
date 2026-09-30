@@ -86,6 +86,7 @@
                 </LinearLayout>
 
                 <ScrollView
+                    android:id="@+id/display_adjustment_scroll"
                     android:layout_width="match_parent"
                     android:layout_height="140dp">
                     <LinearLayout
@@ -155,6 +156,68 @@
                         android:max="80" />
                         <Button
                             android:id="@+id/eye_padding_plus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/increase_display_adjustment"
+                            android:text="+" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/left_inner_padding_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/left_inner_padding_minus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/decrease_display_adjustment"
+                            android:text="−" />
+                    <SeekBar
+                        android:id="@+id/left_inner_padding_slider"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="48dp"
+                        android:contentDescription="@string/left_inner_padding"
+                        android:max="80" />
+                        <Button
+                            android:id="@+id/left_inner_padding_plus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/increase_display_adjustment"
+                            android:text="+" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/right_inner_padding_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/right_inner_padding_minus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/decrease_display_adjustment"
+                            android:text="−" />
+                    <SeekBar
+                        android:id="@+id/right_inner_padding_slider"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
+                        android:layout_height="48dp"
+                        android:contentDescription="@string/right_inner_padding"
+                        android:max="80" />
+                        <Button
+                            android:id="@+id/right_inner_padding_plus"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:contentDescription="@string/increase_display_adjustment"
