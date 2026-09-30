@@ -14,6 +14,7 @@ import android.widget.LinearLayout;
 
 import androidx.annotation.Nullable;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.ViewCompat;
 
 import com.termux.app.TermuxActivity;
 import com.termux.shared.logger.Logger;
@@ -119,6 +120,10 @@ public class TermuxActivityRootView extends LinearLayout implements ViewTreeObse
     @Override
     public void onGlobalLayout() {
         if (mActivity == null || !mActivity.isVisible()) return;
+
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(this);
+        if (insets != null)
+            mActivity.updateTerminalToolbarKeyboardVisibility(insets.isVisible(WindowInsetsCompat.Type.ime()));
 
         View bottomSpaceView = mActivity.getTermuxActivityBottomSpaceView();
         if (bottomSpaceView == null) return;

@@ -672,11 +672,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void updateScreenPadding() {
-        int general = mScreenPadding;
-        int pixels = Math.round(general * getResources().getDisplayMetrics().density);
-        View screen = findViewById(R.id.activity_termux_root_relative_layout);
         boolean landscape = getResources().getConfiguration().orientation
             == Configuration.ORIENTATION_LANDSCAPE;
+        // These controls belong to the horizontal layout. Keep their saved values,
+        // but remove their insets when returning to portrait.
+        int general = landscape ? mScreenPadding : 0;
+        int pixels = Math.round(general * getResources().getDisplayMetrics().density);
+        View screen = findViewById(R.id.activity_termux_root_relative_layout);
         int progress = mSidePadding;
         int availableWidth = Math.max(0, screen.getWidth() - 2 * pixels);
         int side = landscape ? Math.round(availableWidth * progress * 0.005f) : 0;
@@ -710,7 +712,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             mTermuxTerminalViewClient, mTermuxTerminalSessionActivityClient);
 
         final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
-        if (mPreferences.shouldShowTerminalToolbar()) terminalToolbarViewPager.setVisibility(View.VISIBLE);
+        terminalToolbarViewPager.setVisibility(View.GONE);
 
         ViewGroup.LayoutParams layoutParams = terminalToolbarViewPager.getLayoutParams();
         mTerminalToolbarDefaultHeight = layoutParams.height;
@@ -734,6 +736,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             (mTermuxTerminalExtraKeys.getExtraKeysInfo() == null ? 0 : mTermuxTerminalExtraKeys.getExtraKeysInfo().getMatrix().length) *
             mProperties.getTerminalToolbarHeightScaleFactor());
         terminalToolbarViewPager.setLayoutParams(layoutParams);
+    }
+
+    public void updateTerminalToolbarKeyboardVisibility(boolean keyboardVisible) {
+        if (mTermuxTerminalExtraKeys == null) return;
+        View toolbar = getTerminalToolbarViewPager();
+        int visibility = keyboardVisible && mPreferences.shouldShowTerminalToolbar()
+            ? View.VISIBLE : View.GONE;
+        if (toolbar.getVisibility() != visibility) toolbar.setVisibility(visibility);
     }
 
     public void toggleTerminalToolbar() {
