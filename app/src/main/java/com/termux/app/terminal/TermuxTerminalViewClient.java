@@ -205,6 +205,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
                 KeyboardUtils.setSoftInputModeAdjustResize(mActivity);
                 mActivity.getTerminalView().requestFocus();
                 KeyboardUtils.showSoftKeyboard(mActivity, mActivity.getTerminalView());
+                mActivity.showTerminalToolbarOnTerminalTap();
             } else
                 Logger.logVerbose(LOG_TAG, "Not showing soft keyboard onSingleTapUp since its disabled");
         }

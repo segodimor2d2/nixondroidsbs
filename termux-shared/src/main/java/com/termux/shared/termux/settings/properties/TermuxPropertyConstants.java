@@ -328,7 +328,7 @@ public final class TermuxPropertyConstants {
     //public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[[ESC, TAB, CTRL, ALT, {key: '-', popup: '|'}, DOWN, UP]]"; // Single row
     // public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], ['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]"; // Double row
     public static final String DEFAULT_IVALUE_EXTRA_KEYS =
-    "[['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], " +
+    "[['ESC',{key: 'HIDE_BAR', display: '▼'},'/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], " +
     "['TAB',{key: KEYBOARD, popup: {macro: 'CTRL d', display: 'exit'}},'CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]";
 
     /** Defines the key for extra keys style */

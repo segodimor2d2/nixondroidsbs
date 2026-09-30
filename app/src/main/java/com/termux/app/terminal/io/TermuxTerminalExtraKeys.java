@@ -120,7 +120,9 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
     public void onTerminalExtraKeyButtonClick(View view, String key, boolean ctrlDown, boolean altDown, boolean shiftDown, boolean fnDown) {
         if ("KEYBOARD".equals(key)) {
             if(mTermuxTerminalViewClient != null)
-                mTermuxTerminalViewClient.onToggleSoftKeyboardRequest();
+                mActivity.hideKeyboardKeepingTerminalToolbar();
+        } else if ("HIDE_BAR".equals(key)) {
+            mActivity.hideTerminalToolbarOnly();
         } else if ("DRAWER".equals(key)) {
             DrawerLayout drawerLayout = mTermuxTerminalViewClient.getActivity().getDrawer();
             if (drawerLayout.isDrawerOpen(Gravity.LEFT))

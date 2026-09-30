@@ -200,6 +200,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private int mLeftInnerPadding;
     private int mRightInnerPadding;
     private int mTerminalOrientation;
+    private boolean mKeepTerminalToolbarVisible;
+    private boolean mHideTerminalToolbar;
 
     private static final String LOG_TAG = "TermuxActivity";
 
@@ -546,6 +548,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void updateTerminalOrientation(Configuration configuration) {
+        if (mTerminalOrientation != configuration.orientation)
+            mKeepTerminalToolbarVisible = false;
         mTerminalOrientation = configuration.orientation;
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
         applyTerminalFontSize();
@@ -783,12 +787,31 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void updateTerminalToolbarKeyboardVisibility(boolean keyboardVisible) {
         if (mTermuxTerminalExtraKeys == null) return;
         View toolbar = getTerminalToolbarViewPager();
-        int visibility = keyboardVisible && mPreferences.shouldShowTerminalToolbar()
+        int visibility = !mHideTerminalToolbar && (keyboardVisible || mKeepTerminalToolbarVisible)
+            && mPreferences.shouldShowTerminalToolbar()
             ? View.VISIBLE : View.GONE;
         if (toolbar.getVisibility() != visibility) {
             toolbar.setVisibility(visibility);
             updateScreenPadding();
         }
+    }
+
+    public void hideKeyboardKeepingTerminalToolbar() {
+        mHideTerminalToolbar = false;
+        mKeepTerminalToolbarVisible = true;
+        mTermuxTerminalViewClient.hideSoftKeyboard();
+        updateTerminalToolbarKeyboardVisibility(false);
+    }
+
+    public void hideTerminalToolbarOnly() {
+        mHideTerminalToolbar = true;
+        mKeepTerminalToolbarVisible = false;
+        updateTerminalToolbarKeyboardVisibility(false);
+    }
+
+    public void showTerminalToolbarOnTerminalTap() {
+        mHideTerminalToolbar = false;
+        updateTerminalToolbarKeyboardVisibility(true);
     }
 
     public void toggleTerminalToolbar() {
