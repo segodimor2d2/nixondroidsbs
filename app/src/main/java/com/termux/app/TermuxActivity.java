@@ -500,6 +500,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
         initializeAdjustmentDefaults(false);
         setAdjustmentControls();
+        findViewById(R.id.toggle_display_adjustments).setOnClickListener(v -> {
+            View controls = findViewById(R.id.display_adjustment_scroll);
+            boolean expanded = controls.getVisibility() != View.VISIBLE;
+            controls.setVisibility(expanded ? View.VISIBLE : View.GONE);
+            ((TextView) v).setText(expanded ? R.string.hide_display_adjustments
+                : R.string.show_display_adjustments);
+        });
         findViewById(R.id.reset_display_adjustments).setOnClickListener(v -> {
             initializeAdjustmentDefaults(true);
             setAdjustmentControls();

@@ -15,4 +15,6 @@
     <string name="right_inner_padding_value">right: %1$.1f%%</string>
 
     <string name="reset_display_adjustments">reset</string>
+    <string name="show_display_adjustments">[VR]</string>
+    <string name="hide_display_adjustments">[VR]</string>
 </resources>

@@ -84,10 +84,10 @@
                         android:contentDescription="@string/action_open_settings"
                         app:tint="?attr/termuxActivityDrawerImageTint" />
                     <Button
-                        android:id="@+id/reset_display_adjustments"
+                        android:id="@+id/toggle_display_adjustments"
                         android:layout_width="wrap_content"
                         android:layout_height="48dp"
-                        android:text="@string/reset_display_adjustments"
+                        android:text="@string/show_display_adjustments"
                         android:textColor="@android:color/white"
                         android:backgroundTint="@android:color/black"
                         app:backgroundTint="@android:color/black" />
@@ -95,6 +95,7 @@
 
                 <ScrollView
                     android:id="@+id/display_adjustment_scroll"
+                    android:visibility="gone"
                     android:layout_width="match_parent"
                     android:layout_height="140dp">
                     <LinearLayout
@@ -280,6 +281,14 @@
                     </LinearLayout>
                 </LinearLayout>
 
+                    <Button
+                        android:id="@+id/reset_display_adjustments"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="@string/reset_display_adjustments"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@android:color/black"
+                        app:backgroundTint="@android:color/black" />
                     </LinearLayout>
                 </ScrollView>
 
