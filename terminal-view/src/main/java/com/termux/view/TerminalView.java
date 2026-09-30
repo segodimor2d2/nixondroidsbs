@@ -1017,7 +1017,7 @@ public final class TerminalView extends View {
     private float mStereoOffset;
 
     public void setStereoOffset(float offset) {
-        mStereoOffset = Math.max(-0.1f, Math.min(0.1f, offset));
+        mStereoOffset = Math.max(-0.25f, Math.min(0.25f, offset));
         invalidate();
         if (mMirrorView != null) mMirrorView.invalidate();
     }

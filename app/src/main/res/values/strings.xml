@@ -241,4 +241,6 @@
     <string name="screen_padding_value">Screen padding: %1$d dp</string>
     <string name="eye_padding">Horizontal eye padding</string>
     <string name="eye_padding_value">Horizontal eye padding: %1$.1f%%</string>
+    <string name="decrease_display_adjustment">Decrease adjustment</string>
+    <string name="increase_display_adjustment">Increase adjustment</string>
 </resources>

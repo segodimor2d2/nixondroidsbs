@@ -498,6 +498,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             R.string.screen_padding_value, "screen_padding", false);
         setPaddingControl(R.id.eye_padding_slider, R.id.eye_padding_label,
             R.string.eye_padding_value, "eye_padding", true);
+        setSliderButtons(R.id.screen_padding_slider, R.id.screen_padding_minus, R.id.screen_padding_plus);
+        setSliderButtons(R.id.eye_padding_slider, R.id.eye_padding_minus, R.id.eye_padding_plus);
+        setSliderButtons(R.id.vr_alignment_slider, R.id.vr_alignment_minus, R.id.vr_alignment_plus);
         View leftEye = findViewById(R.id.terminal_eye_left);
         leftEye.addOnLayoutChangeListener((v, left, top, right, bottom,
             oldLeft, oldTop, oldRight, oldBottom) -> {
@@ -526,7 +529,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
         findViewById(R.id.vr_alignment_controls).setVisibility(landscape ? View.VISIBLE : View.GONE);
         int progress = ((SeekBar) findViewById(R.id.vr_alignment_slider)).getProgress();
-        mTerminalView.setStereoOffset(landscape ? (progress - 20) * 0.005f : 0);
+        mTerminalView.setStereoOffset(landscape ? (progress - 50) * 0.005f : 0);
         View mirror = findViewById(R.id.terminal_eye_right);
         if (mirror != null) {
             mirror.setVisibility(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
@@ -549,6 +552,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 label.setText(percentage ? getString(formatId, progress * 0.5f)
                     : getString(formatId, progress));
                 updateScreenPadding();
+                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
+                    .putInt(key, progress).apply();
             }
 
             @Override
@@ -579,14 +584,17 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void setVrAlignmentControls() {
         SeekBar slider = findViewById(R.id.vr_alignment_slider);
-        slider.setProgress(Math.max(0, Math.min(40,
-            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt("progress", 20))));
+        slider.setProgress(Math.max(0, Math.min(100,
+            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt("alignment_steps",
+                getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt("progress", 20) + 30))));
         updateVrAlignmentLabel(slider.getProgress());
         slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 updateVrAlignmentLabel(progress);
                 updateTerminalOrientation(getResources().getConfiguration());
+                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
+                    .putInt("alignment_steps", progress).apply();
             }
 
             @Override
@@ -595,14 +603,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
                 getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
-                    .putInt("progress", seekBar.getProgress()).apply();
+                    .putInt("alignment_steps", seekBar.getProgress()).apply();
             }
         });
     }
 
+    private void setSliderButtons(int sliderId, int minusId, int plusId) {
+        SeekBar slider = findViewById(sliderId);
+        slider.setKeyProgressIncrement(1);
+        findViewById(minusId).setOnClickListener(v ->
+            slider.setProgress(Math.max(0, slider.getProgress() - 1)));
+        findViewById(plusId).setOnClickListener(v ->
+            slider.setProgress(Math.min(slider.getMax(), slider.getProgress() + 1)));
+    }
+
     private void updateVrAlignmentLabel(int progress) {
         ((TextView) findViewById(R.id.vr_alignment_label)).setText(
-            getString(R.string.vr_alignment_value, (progress - 20) * 0.5f));
+            getString(R.string.vr_alignment_value, (progress - 50) * 0.5f));
     }
 
     private void setTermuxSessionsListView() {

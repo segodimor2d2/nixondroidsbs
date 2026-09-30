@@ -5,4 +5,6 @@
     <string name="screen_padding_value">Padding geral: %1$d dp</string>
     <string name="eye_padding">Padding lateral por olho</string>
     <string name="eye_padding_value">Padding lateral por olho: %1$.1f%%</string>
+    <string name="decrease_display_adjustment">Diminuir ajuste</string>
+    <string name="increase_display_adjustment">Aumentar ajuste</string>
 </resources>
