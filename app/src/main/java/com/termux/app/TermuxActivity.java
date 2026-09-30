@@ -513,6 +513,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         });
         findViewById(R.id.reset_display_adjustments).setOnClickListener(v -> {
             initializeAdjustmentDefaults(true);
+            getSharedPreferences("terminal_font_sizes", MODE_PRIVATE).edit()
+                .putInt("portrait", getDefaultPortraitFontSize()).apply();
             setAdjustmentControls();
             updateTerminalOrientation(getResources().getConfiguration());
         });
@@ -575,7 +577,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void applyTerminalFontSize() {
         android.content.SharedPreferences preferences = getSharedPreferences("terminal_font_sizes", MODE_PRIVATE);
         int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
-        int portrait = preferences.getInt("portrait", mPreferences.getFontSize());
+        int portrait = preferences.getInt("portrait", getDefaultPortraitFontSize());
         int percentage = getResources().getInteger(R.integer.default_landscape_font_size_percent);
         int landscapeDefault = Math.max(limits[1], Math.round(portrait * percentage / 100f));
         android.content.SharedPreferences.Editor editor = preferences.edit();
@@ -584,6 +586,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         editor.apply();
         int size = preferences.getInt(getTerminalFontSizeKey(), portrait);
         mTerminalView.setTextSize(Math.max(limits[1], Math.min(limits[2], size)));
+        updateTerminalFontSizeLabel();
     }
 
     public void changeTerminalFontSize(boolean increase) {
@@ -595,6 +598,25 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         preferences.edit().putInt(key, size).apply();
         if ("portrait".equals(key)) mPreferences.setFontSize(size);
         mTerminalView.setTextSize(size);
+        updateTerminalFontSizeLabel();
+    }
+
+    private int getDefaultPortraitFontSize() {
+        int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
+        int size = Math.round(getResources().getInteger(R.integer.default_portrait_font_size_dp)
+            * getResources().getDisplayMetrics().density);
+        return Math.max(limits[1], Math.min(limits[2], size));
+    }
+
+    private void updateTerminalFontSizeLabel() {
+        int size = getSharedPreferences("terminal_font_sizes", MODE_PRIVATE)
+            .getInt(getTerminalFontSizeKey(), getDefaultPortraitFontSize());
+        ((TextView) findViewById(R.id.portrait_font_size_label)).setText(
+            getString(R.string.portrait_font_size_value,
+                size / getResources().getDisplayMetrics().density));
+        int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
+        findViewById(R.id.portrait_font_size_minus).setEnabled(size > limits[1]);
+        findViewById(R.id.portrait_font_size_plus).setEnabled(size < limits[2]);
     }
 
     private void updateDrawerLayout(boolean landscape) {
@@ -623,6 +645,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             controlsParams.height = height;
             controls.setLayoutParams(controlsParams);
         }
+        arrangeAdjustmentLabel(R.id.portrait_font_size_label, R.id.portrait_font_size_plus, landscape);
         arrangeAdjustmentLabel(R.id.screen_padding_label, R.id.screen_padding_plus, landscape);
         arrangeAdjustmentLabel(R.id.eye_padding_label, R.id.eye_padding_plus, landscape);
         arrangeAdjustmentLabel(R.id.vr_alignment_label, R.id.vr_alignment_plus, landscape);
@@ -674,6 +697,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void setAdjustmentControls() {
+        updateTerminalFontSizeLabel();
+        findViewById(R.id.portrait_font_size_minus).setOnClickListener(v -> changeTerminalFontSize(false));
+        findViewById(R.id.portrait_font_size_plus).setOnClickListener(v -> changeTerminalFontSize(true));
         setAdjustmentButtons("portrait_screen_padding", 120,
             getResources().getInteger(R.integer.default_portrait_screen_padding_dp),
             R.id.portrait_screen_padding_label, R.string.portrait_screen_padding_value,

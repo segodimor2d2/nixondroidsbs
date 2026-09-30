@@ -394,7 +394,8 @@ public final class TerminalView extends View {
                     }
 
                     // Check onKeyDown() for details.
-                    if (mClient.readShiftKey())
+                    boolean shiftHeld = mClient.readShiftKey();
+                    if (shiftHeld)
                         codePoint = Character.toUpperCase(codePoint);
 
                     boolean ctrlHeld = false;
@@ -428,7 +429,7 @@ public final class TerminalView extends View {
                         }
                     }
 
-                    inputCodePoint(KEY_EVENT_SOURCE_SOFT_KEYBOARD, codePoint, ctrlHeld, false);
+                    inputCodePoint(KEY_EVENT_SOURCE_SOFT_KEYBOARD, codePoint, ctrlHeld, false, shiftHeld);
                 }
             }
 
@@ -833,7 +834,7 @@ public final class TerminalView extends View {
                 if (combinedChar > 0) result = combinedChar;
                 mCombiningAccent = 0;
             }
-            inputCodePoint(event.getDeviceId(), result, controlDown, leftAltDown);
+            inputCodePoint(event.getDeviceId(), result, controlDown, leftAltDown, shiftDown);
         }
 
         if (mCombiningAccent != oldCombiningAccent) invalidate();
@@ -842,6 +843,11 @@ public final class TerminalView extends View {
     }
 
     public void inputCodePoint(int eventSource, int codePoint, boolean controlDownFromEvent, boolean leftAltDownFromEvent) {
+        inputCodePoint(eventSource, codePoint, controlDownFromEvent, leftAltDownFromEvent, mClient.readShiftKey());
+    }
+
+    public void inputCodePoint(int eventSource, int codePoint, boolean controlDownFromEvent,
+                               boolean leftAltDownFromEvent, boolean shiftDown) {
         if (TERMINAL_VIEW_KEY_LOGGING_ENABLED) {
             mClient.logInfo(LOG_TAG, "inputCodePoint(eventSource=" + eventSource + ", codePoint=" + codePoint + ", controlDownFromEvent=" + controlDownFromEvent + ", leftAltDownFromEvent="
                 + leftAltDownFromEvent + ")");
@@ -856,7 +862,7 @@ public final class TerminalView extends View {
         final boolean controlDown = controlDownFromEvent || mClient.readControlKey();
         final boolean altDown = leftAltDownFromEvent || mClient.readAltKey();
 
-        if (mClient.onCodePoint(codePoint, controlDown, mTermSession)) return;
+        if (mClient.onCodePoint(codePoint, controlDown, shiftDown, mTermSession)) return;
 
         if (controlDown) {
             if (codePoint >= 'a' && codePoint <= 'z') {

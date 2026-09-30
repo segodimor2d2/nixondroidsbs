@@ -62,6 +62,10 @@ public interface TerminalViewClient {
 
     boolean onCodePoint(int codePoint, boolean ctrlDown, TerminalSession session);
 
+    default boolean onCodePoint(int codePoint, boolean ctrlDown, boolean shiftDown, TerminalSession session) {
+        return onCodePoint(codePoint, ctrlDown, session);
+    }
+
 
     void onEmulatorSet();
 

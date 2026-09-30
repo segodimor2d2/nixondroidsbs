@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Initial portrait font size in dp. Existing zoom is preserved; Reset restores this value. -->
+    <integer name="default_portrait_font_size_dp">12</integer>
     <!-- Initial landscape font size as a percentage of the portrait font size.
          Each orientation keeps its own zoom after the first initialization. -->
     <integer name="default_landscape_font_size_percent">70</integer>

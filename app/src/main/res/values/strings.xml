@@ -249,4 +249,5 @@
     <string name="show_display_adjustments">Show adjustments</string>
     <string name="hide_display_adjustments">Hide adjustments</string>
     <string name="portrait_screen_padding_value">allPadV: %1$d dp</string>
+    <string name="portrait_font_size_value">fontSize: %1$.1f dp</string>
 </resources>

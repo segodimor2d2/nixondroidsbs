@@ -245,6 +245,21 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession currentSession) {
         if (handleVirtualKeys(keyCode, e, true)) return true;
+        boolean fontSizeKey = keyCode == KeyEvent.KEYCODE_PLUS
+            || keyCode == KeyEvent.KEYCODE_EQUALS || keyCode == KeyEvent.KEYCODE_MINUS;
+        // Gboard sends key events without Ctrl in their meta state when Ctrl comes
+        // from the auxiliary bar. Read that modifier before terminal key mapping.
+        if (fontSizeKey && !e.isAltPressed()
+            && (e.isShiftPressed() || readShiftKey())
+            && (e.isCtrlPressed() || readControlKey())) {
+            if (keyCode == KeyEvent.KEYCODE_PLUS || keyCode == KeyEvent.KEYCODE_EQUALS) {
+                changeFontSize(true);
+                return true;
+            } else if (keyCode == KeyEvent.KEYCODE_MINUS) {
+                changeFontSize(false);
+                return true;
+            }
+        }
 
         if (keyCode == KeyEvent.KEYCODE_ENTER && !currentSession.isRunning()) {
             mTermuxTerminalSessionActivityClient.removeFinishedSession(currentSession);
@@ -361,6 +376,16 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     }
 
 
+
+    @Override
+    public boolean onCodePoint(int codePoint, boolean ctrlDown, boolean shiftDown, TerminalSession session) {
+        if (ctrlDown && shiftDown && !mVirtualFnKeyDown
+            && (codePoint == '+' || codePoint == '=' || codePoint == '-' || codePoint == '_')) {
+            changeFontSize(codePoint == '+' || codePoint == '=');
+            return true;
+        }
+        return onCodePoint(codePoint, ctrlDown, session);
+    }
 
     @Override
     public boolean onCodePoint(final int codePoint, boolean ctrlDown, TerminalSession session) {
