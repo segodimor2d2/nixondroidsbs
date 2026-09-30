@@ -13,6 +13,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -199,9 +200,12 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
         }
 
         if (!term.isMouseTrackingActive() && !e.isFromSource(InputDevice.SOURCE_MOUSE)) {
-            if (!KeyboardUtils.areDisableSoftKeyboardFlagsSet(mActivity))
+            if (!KeyboardUtils.areDisableSoftKeyboardFlagsSet(mActivity)) {
+                mShowSoftKeyboardIgnoreOnce = false;
+                KeyboardUtils.setSoftInputModeAdjustResize(mActivity);
+                mActivity.getTerminalView().requestFocus();
                 KeyboardUtils.showSoftKeyboard(mActivity, mActivity.getTerminalView());
-            else
+            } else
                 Logger.logVerbose(LOG_TAG, "Not showing soft keyboard onSingleTapUp since its disabled");
         }
     }
@@ -595,10 +599,11 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             KeyboardUtils.clearDisableSoftKeyboardFlags(mActivity);
 
             // Start with the keyboard and auxiliary keys hidden until the user opens input.
-            if (isStartup) {
+            if (isStartup && mActivity.isOnResumeAfterOnCreate()) {
                 Logger.logVerbose(LOG_TAG, "Hiding soft keyboard on startup");
-                // Required to keep keyboard hidden when Termux app is switched back from another app
-                KeyboardUtils.setSoftKeyboardAlwaysHiddenFlags(mActivity);
+                // Hide on initial entry without hiding subsequent Gboard input restarts.
+                mActivity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_HIDDEN
+                    | WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
 
                 KeyboardUtils.hideSoftKeyboard(mActivity, mActivity.getTerminalView());
                 mActivity.getTerminalView().requestFocus();
@@ -623,6 +628,16 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
                     }
                     Logger.logVerbose(LOG_TAG, "Showing soft keyboard on focus change");
                 } else {
+                    // A large IME can briefly shrink the terminal enough to clear its focus.
+                    // No other view was selected: restore focus after the resize instead of
+                    // closing the IME and starting a show/hide loop (notably with Gboard).
+                    if (mActivity.getCurrentFocus() == null) {
+                        view.post(() -> {
+                            if (mActivity.getCurrentFocus() == null && view.isShown()
+                                && view.hasWindowFocus()) view.requestFocus();
+                        });
+                        return;
+                    }
                     Logger.logVerbose(LOG_TAG, "Hiding soft keyboard on focus change");
                 }
 

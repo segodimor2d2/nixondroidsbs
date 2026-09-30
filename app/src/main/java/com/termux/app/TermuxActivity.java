@@ -199,6 +199,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private int mVrAlignment = 50;
     private int mLeftInnerPadding;
     private int mRightInnerPadding;
+    private int mTerminalOrientation;
 
     private static final String LOG_TAG = "TermuxActivity";
 
@@ -521,7 +522,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         View screen = findViewById(R.id.activity_termux_root_relative_layout);
         screen.addOnLayoutChangeListener((v, left, top, right, bottom,
             oldLeft, oldTop, oldRight, oldBottom) -> {
-            if (right - left != oldRight - oldLeft) updateScreenPadding();
+            if (right - left != oldRight - oldLeft || bottom - top != oldBottom - oldTop)
+                updateScreenPadding();
         });
         updateTerminalOrientation(getResources().getConfiguration());
 
@@ -535,14 +537,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        boolean enteredLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
+            && mTerminalOrientation != Configuration.ORIENTATION_LANDSCAPE;
         updateTerminalOrientation(newConfig);
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
-            && mTermuxTerminalViewClient != null) {
+        if (enteredLandscape && mTermuxTerminalViewClient != null) {
             mTermuxTerminalViewClient.hideSoftKeyboard();
         }
     }
 
     private void updateTerminalOrientation(Configuration configuration) {
+        mTerminalOrientation = configuration.orientation;
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
         applyTerminalFontSize();
         updateDrawerLayout(landscape);
@@ -713,7 +717,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         int progress = mSidePadding;
         int availableWidth = Math.max(0, screen.getWidth() - 2 * pixels);
         int side = landscape ? Math.round(availableWidth * progress * 0.005f) : 0;
-        screen.setPadding(pixels + side, pixels, pixels + side, pixels);
+        View toolbar = getTerminalToolbarViewPager();
+        int toolbarHeight = toolbar != null && toolbar.getVisibility() == View.VISIBLE
+            ? toolbar.getLayoutParams().height : 0;
+        int minimumTerminalHeight = Math.round(64 * getResources().getDisplayMetrics().density);
+        int maximumVerticalPadding = Math.max(0,
+            (screen.getHeight() - toolbarHeight - minimumTerminalHeight) / 2);
+        int verticalPadding = Math.min(pixels, maximumVerticalPadding);
+        screen.setPadding(pixels + side, verticalPadding, pixels + side, verticalPadding);
         updateInnerPadding();
     }
 
@@ -774,7 +785,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         View toolbar = getTerminalToolbarViewPager();
         int visibility = keyboardVisible && mPreferences.shouldShowTerminalToolbar()
             ? View.VISIBLE : View.GONE;
-        if (toolbar.getVisibility() != visibility) toolbar.setVisibility(visibility);
+        if (toolbar.getVisibility() != visibility) {
+            toolbar.setVisibility(visibility);
+            updateScreenPadding();
+        }
     }
 
     public void toggleTerminalToolbar() {
