@@ -197,6 +197,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private int mScreenPadding;
     private int mSidePadding;
     private int mVrAlignment = 50;
+    private int mLeftInnerPadding;
+    private int mRightInnerPadding;
 
     private static final String LOG_TAG = "TermuxActivity";
 
@@ -496,17 +498,19 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
-        setAdjustmentButtons("screen_padding", 120, 0, R.id.screen_padding_label,
-            R.string.screen_padding_value, R.id.screen_padding_minus, R.id.screen_padding_plus,
-            false, value -> mScreenPadding = value);
-        setAdjustmentButtons("eye_padding", 80, 0, R.id.eye_padding_label,
-            R.string.eye_padding_value, R.id.eye_padding_minus, R.id.eye_padding_plus,
-            true, value -> mSidePadding = value);
-        int defaultAlignment = getSharedPreferences("vr_alignment", MODE_PRIVATE)
-            .getInt("progress", 20) + 30;
-        setAdjustmentButtons("alignment_steps", 100, defaultAlignment, R.id.vr_alignment_label,
-            R.string.vr_alignment_value, R.id.vr_alignment_minus, R.id.vr_alignment_plus,
-            true, value -> mVrAlignment = value);
+        initializeAdjustmentDefaults(false);
+        setAdjustmentControls();
+        findViewById(R.id.reset_display_adjustments).setOnClickListener(v -> {
+            initializeAdjustmentDefaults(true);
+            setAdjustmentControls();
+            updateTerminalOrientation(getResources().getConfiguration());
+        });
+        for (int eyeId : new int[] { R.id.terminal_eye_left, R.id.terminal_eye_right }) {
+            findViewById(eyeId).addOnLayoutChangeListener((v, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> {
+                if (right - left != oldRight - oldLeft) updateInnerPadding();
+            });
+        }
         View screen = findViewById(R.id.activity_termux_root_relative_layout);
         screen.addOnLayoutChangeListener((v, left, top, right, bottom,
             oldLeft, oldTop, oldRight, oldBottom) -> {
@@ -569,6 +573,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         arrangeAdjustmentLabel(R.id.screen_padding_label, R.id.screen_padding_plus, landscape);
         arrangeAdjustmentLabel(R.id.eye_padding_label, R.id.eye_padding_plus, landscape);
         arrangeAdjustmentLabel(R.id.vr_alignment_label, R.id.vr_alignment_plus, landscape);
+        arrangeAdjustmentLabel(R.id.left_inner_padding_label, R.id.left_inner_padding_plus, landscape);
+        arrangeAdjustmentLabel(R.id.right_inner_padding_label, R.id.right_inner_padding_plus, landscape);
     }
 
     private void arrangeAdjustmentLabel(int labelId, int buttonId, boolean landscape) {
@@ -587,6 +593,49 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             params.width = width;
             label.setLayoutParams(params);
         }
+    }
+
+    private void initializeAdjustmentDefaults(boolean reset) {
+        android.content.SharedPreferences preferences = getSharedPreferences("vr_alignment", MODE_PRIVATE);
+        android.content.SharedPreferences.Editor editor = preferences.edit();
+        String[] keys = { "screen_padding", "eye_padding", "left_inner_padding",
+            "right_inner_padding", "alignment_steps" };
+        int[] defaults = {
+            getResources().getInteger(R.integer.default_screen_padding_dp),
+            getResources().getInteger(R.integer.default_side_padding_steps),
+            getResources().getInteger(R.integer.default_left_inner_padding_steps),
+            getResources().getInteger(R.integer.default_right_inner_padding_steps),
+            50 + getResources().getInteger(R.integer.default_vr_alignment_steps)
+        };
+        int[] maximums = { 120, 80, 80, 80, 100 };
+        for (int i = 0; i < keys.length; i++) {
+            if (reset || !preferences.contains(keys[i])) {
+                int value = defaults[i];
+                if (!reset && "alignment_steps".equals(keys[i]) && preferences.contains("progress"))
+                    value = preferences.getInt("progress", 20) + 30;
+                editor.putInt(keys[i], Math.max(0, Math.min(maximums[i], value)));
+            }
+        }
+        editor.apply();
+    }
+
+    private void setAdjustmentControls() {
+        setAdjustmentButtons("screen_padding", 120, getResources().getInteger(R.integer.default_screen_padding_dp), R.id.screen_padding_label,
+            R.string.screen_padding_value, R.id.screen_padding_minus, R.id.screen_padding_plus,
+            false, value -> mScreenPadding = value);
+        setAdjustmentButtons("eye_padding", 80, getResources().getInteger(R.integer.default_side_padding_steps), R.id.eye_padding_label,
+            R.string.eye_padding_value, R.id.eye_padding_minus, R.id.eye_padding_plus,
+            true, value -> mSidePadding = value);
+        setAdjustmentButtons("left_inner_padding", 80, getResources().getInteger(R.integer.default_left_inner_padding_steps), R.id.left_inner_padding_label,
+            R.string.left_inner_padding_value, R.id.left_inner_padding_minus, R.id.left_inner_padding_plus,
+            true, value -> mLeftInnerPadding = value);
+        setAdjustmentButtons("right_inner_padding", 80, getResources().getInteger(R.integer.default_right_inner_padding_steps), R.id.right_inner_padding_label,
+            R.string.right_inner_padding_value, R.id.right_inner_padding_minus, R.id.right_inner_padding_plus,
+            true, value -> mRightInnerPadding = value);
+        setAdjustmentButtons("alignment_steps", 100,
+            50 + getResources().getInteger(R.integer.default_vr_alignment_steps), R.id.vr_alignment_label,
+            R.string.vr_alignment_value, R.id.vr_alignment_minus, R.id.vr_alignment_plus,
+            true, value -> mVrAlignment = value);
     }
 
     private void setAdjustmentButtons(String key, int maximum, int initial, int labelId,
@@ -625,6 +674,18 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         int availableWidth = Math.max(0, screen.getWidth() - 2 * pixels);
         int side = landscape ? Math.round(availableWidth * progress * 0.005f) : 0;
         screen.setPadding(pixels + side, pixels, pixels + side, pixels);
+        updateInnerPadding();
+    }
+
+    private void updateInnerPadding() {
+        boolean landscape = getResources().getConfiguration().orientation
+            == Configuration.ORIENTATION_LANDSCAPE;
+        View leftEye = findViewById(R.id.terminal_eye_left);
+        View rightEye = findViewById(R.id.terminal_eye_right);
+        int leftInset = landscape ? Math.round(leftEye.getWidth() * mLeftInnerPadding * 0.005f) : 0;
+        int rightInset = landscape ? Math.round(rightEye.getWidth() * mRightInnerPadding * 0.005f) : 0;
+        leftEye.setPadding(0, 0, leftInset, 0);
+        rightEye.setPadding(rightInset, 0, 0, 0);
     }
 
     private void setTermuxSessionsListView() {

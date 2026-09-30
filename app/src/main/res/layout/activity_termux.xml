@@ -83,6 +83,14 @@
                         android:background="@null"
                         android:contentDescription="@string/action_open_settings"
                         app:tint="?attr/termuxActivityDrawerImageTint" />
+                    <Button
+                        android:id="@+id/reset_display_adjustments"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="@string/reset_display_adjustments"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@android:color/black"
+                        app:backgroundTint="@android:color/black" />
                 </LinearLayout>
 
                 <ScrollView
@@ -162,6 +170,74 @@
                             android:backgroundTint="@android:color/black"
                             app:backgroundTint="@android:color/black"
                             android:id="@+id/eye_padding_plus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/increase_display_adjustment"
+                            android:text="+" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/left_inner_padding_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/left_inner_padding_minus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/decrease_display_adjustment"
+                            android:text="−" />
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="1dp" />
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/left_inner_padding_plus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/increase_display_adjustment"
+                            android:text="+" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/right_inner_padding_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/right_inner_padding_minus"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/decrease_display_adjustment"
+                            android:text="−" />
+                        <Space
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="1dp" />
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/right_inner_padding_plus"
                             android:layout_width="48dp"
                             android:layout_height="48dp"
                             android:contentDescription="@string/increase_display_adjustment"

@@ -7,4 +7,7 @@
     <string name="eye_padding_value">Padding lateral da tela: %1$.1f%%</string>
     <string name="decrease_display_adjustment">Diminuir ajuste</string>
     <string name="increase_display_adjustment">Aumentar ajuste</string>
+    <string name="left_inner_padding_value">Esquerdo: padding à direita: %1$.1f%%</string>
+    <string name="right_inner_padding_value">Direito: padding à esquerda: %1$.1f%%</string>
+    <string name="reset_display_adjustments">Reset</string>
 </resources>
