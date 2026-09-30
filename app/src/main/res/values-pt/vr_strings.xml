@@ -2,8 +2,8 @@
     <string name="vr_alignment">align-vr</string>
     <string name="vr_alignment_value">align-vr: %1$.1f%%</string>
 
-    <string name="screen_padding">all padding</string>
-    <string name="screen_padding_value">all padding: %1$d dp</string>
+    <string name="screen_padding">allPad</string>
+    <string name="screen_padding_value">allPad: %1$d dp</string>
 
     <string name="eye_padding">x-side</string>
     <string name="eye_padding_value">x-side: %1$.1f%%</string>

@@ -602,7 +602,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         View drawer = findViewById(R.id.left_drawer);
         drawer.getBackground().mutate().setAlpha(153); // 60% opacity, 40% transparency.
         ViewGroup.LayoutParams drawerParams = drawer.getLayoutParams();
-        int width = Math.round((landscape ? 480 : 240)
+        int width = Math.round((landscape ? 240 : 240)
             * getResources().getDisplayMetrics().density);
         if (drawerParams.width != width) {
             drawerParams.width = width;
@@ -610,8 +610,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
         View controls = findViewById(R.id.display_adjustment_scroll);
         ViewGroup.LayoutParams controlsParams = controls.getLayoutParams();
+
         int height = landscape ? ViewGroup.LayoutParams.WRAP_CONTENT
-            : Math.round(140 * getResources().getDisplayMetrics().density);
+            : Math.round((landscape ? 300 : 500) * getResources().getDisplayMetrics().density);
+
+        // int height = Math.round((landscape ? 300 : 140)
+        //     * getResources().getDisplayMetrics().density);
+
         if (controlsParams.height != height) {
             controlsParams.height = height;
             controls.setLayoutParams(controlsParams);
