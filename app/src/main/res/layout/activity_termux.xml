@@ -30,10 +30,14 @@
                 android:baselineAligned="false"
                 android:background="@android:color/black">
 
-                <com.termux.view.TerminalView
-                    android:id="@+id/terminal_view"
+                <FrameLayout
+                    android:id="@+id/terminal_eye_left"
                     android:layout_width="0dp"
                     android:layout_weight="1"
+                    android:layout_height="match_parent">
+                <com.termux.view.TerminalView
+                    android:id="@+id/terminal_view"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:defaultFocusHighlightEnabled="false"
                     android:focusableInTouchMode="true"
@@ -41,12 +45,18 @@
                     android:scrollbars="vertical"
                     tools:ignore="UnusedAttribute" />
 
-                <com.termux.view.TerminalMirrorView
-                    android:id="@+id/terminal_mirror_view"
+                </FrameLayout>
+                <FrameLayout
+                    android:id="@+id/terminal_eye_right"
                     android:layout_width="0dp"
                     android:layout_weight="1"
+                    android:layout_height="match_parent">
+                <com.termux.view.TerminalMirrorView
+                    android:id="@+id/terminal_mirror_view"
+                    android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
+                </FrameLayout>
             </LinearLayout>
 
             <LinearLayout
@@ -74,6 +84,62 @@
                         android:contentDescription="@string/action_open_settings"
                         app:tint="?attr/termuxActivityDrawerImageTint" />
                 </LinearLayout>
+
+                <ScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="140dp">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                <TextView
+                    android:id="@+id/screen_padding_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp" />
+                <SeekBar
+                    android:id="@+id/screen_padding_slider"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:contentDescription="@string/screen_padding"
+                    android:max="48" />
+
+                <LinearLayout
+                    android:id="@+id/vr_alignment_controls"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/eye_padding_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <SeekBar
+                        android:id="@+id/eye_padding_slider"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:contentDescription="@string/eye_padding"
+                        android:max="40" />
+
+                    <TextView
+                        android:id="@+id/vr_alignment_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+
+                    <SeekBar
+                        android:id="@+id/vr_alignment_slider"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:contentDescription="@string/vr_alignment"
+                        android:max="40"
+                        android:progress="20" />
+                </LinearLayout>
+
+                    </LinearLayout>
+                </ScrollView>
 
                 <ListView
                     android:id="@+id/terminal_sessions_list"

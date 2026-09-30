@@ -25,6 +25,8 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.termux.R;
@@ -491,6 +493,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
+        setVrAlignmentControls();
+        setPaddingControl(R.id.screen_padding_slider, R.id.screen_padding_label,
+            R.string.screen_padding_value, "screen_padding", false);
+        setPaddingControl(R.id.eye_padding_slider, R.id.eye_padding_label,
+            R.string.eye_padding_value, "eye_padding", true);
+        View leftEye = findViewById(R.id.terminal_eye_left);
+        leftEye.addOnLayoutChangeListener((v, left, top, right, bottom,
+            oldLeft, oldTop, oldRight, oldBottom) -> {
+            if (right - left != oldRight - oldLeft) updateScreenPadding();
+        });
         updateTerminalOrientation(getResources().getConfiguration());
 
         if (mTermuxTerminalViewClient != null)
@@ -511,11 +523,86 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void updateTerminalOrientation(Configuration configuration) {
-        View mirror = findViewById(R.id.terminal_mirror_view);
+        boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        findViewById(R.id.vr_alignment_controls).setVisibility(landscape ? View.VISIBLE : View.GONE);
+        int progress = ((SeekBar) findViewById(R.id.vr_alignment_slider)).getProgress();
+        mTerminalView.setStereoOffset(landscape ? (progress - 20) * 0.005f : 0);
+        View mirror = findViewById(R.id.terminal_eye_right);
         if (mirror != null) {
             mirror.setVisibility(configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
                 ? View.VISIBLE : View.GONE);
         }
+        updateScreenPadding();
+    }
+
+    private void setPaddingControl(int sliderId, int labelId, int formatId,
+                                   String key, boolean percentage) {
+        SeekBar slider = findViewById(sliderId);
+        TextView label = findViewById(labelId);
+        slider.setProgress(Math.max(0, Math.min(slider.getMax(),
+            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt(key, 0))));
+        label.setText(percentage ? getString(formatId, slider.getProgress() * 0.5f)
+            : getString(formatId, slider.getProgress()));
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                label.setText(percentage ? getString(formatId, progress * 0.5f)
+                    : getString(formatId, progress));
+                updateScreenPadding();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
+                    .putInt(key, seekBar.getProgress()).apply();
+            }
+        });
+    }
+
+    private void updateScreenPadding() {
+        int general = ((SeekBar) findViewById(R.id.screen_padding_slider)).getProgress();
+        int pixels = Math.round(general * getResources().getDisplayMetrics().density);
+        findViewById(R.id.activity_termux_root_relative_layout)
+            .setPadding(pixels, pixels, pixels, pixels);
+        boolean landscape = getResources().getConfiguration().orientation
+            == Configuration.ORIENTATION_LANDSCAPE;
+        View leftEye = findViewById(R.id.terminal_eye_left);
+        View rightEye = findViewById(R.id.terminal_eye_right);
+        int progress = ((SeekBar) findViewById(R.id.eye_padding_slider)).getProgress();
+        int side = landscape ? Math.round(leftEye.getWidth() * progress * 0.005f) : 0;
+        leftEye.setPadding(side, 0, side, 0);
+        rightEye.setPadding(side, 0, side, 0);
+    }
+
+    private void setVrAlignmentControls() {
+        SeekBar slider = findViewById(R.id.vr_alignment_slider);
+        slider.setProgress(Math.max(0, Math.min(40,
+            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt("progress", 20))));
+        updateVrAlignmentLabel(slider.getProgress());
+        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                updateVrAlignmentLabel(progress);
+                updateTerminalOrientation(getResources().getConfiguration());
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {}
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
+                    .putInt("progress", seekBar.getProgress()).apply();
+            }
+        });
+    }
+
+    private void updateVrAlignmentLabel(int progress) {
+        ((TextView) findViewById(R.id.vr_alignment_label)).setText(
+            getString(R.string.vr_alignment_value, (progress - 20) * 0.5f));
     }
 
     private void setTermuxSessionsListView() {

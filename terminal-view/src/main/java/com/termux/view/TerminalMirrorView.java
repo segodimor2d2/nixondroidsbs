@@ -30,15 +30,21 @@ public final class TerminalMirrorView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         if (mSource == null) canvas.drawColor(0xFF000000);
-        else mSource.renderTerminal(canvas);
+        else {
+            int save = canvas.save();
+            canvas.translate(-mSource.getStereoOffsetPixels(), 0);
+            mSource.renderTerminal(canvas);
+            canvas.restoreToCount(save);
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (mSource == null) return false;
-        // Coordinates are already local to an equally sized eye. Preserve the original event.
+        // Undo the right-eye offset and compensate for the source's input transform.
         MotionEvent forwarded = MotionEvent.obtain(event);
         try {
+            forwarded.offsetLocation(2 * mSource.getStereoOffsetPixels(), 0);
             return mSource.dispatchTouchEvent(forwarded);
         } finally {
             forwarded.recycle();

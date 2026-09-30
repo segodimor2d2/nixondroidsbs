@@ -1005,12 +1005,37 @@ public final class TerminalView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
+        int save = canvas.save();
+        canvas.translate(getStereoOffsetPixels(), 0);
         renderTerminal(canvas);
+        canvas.restoreToCount(save);
         if (mMirrorView != null) mMirrorView.invalidate();
         if (mEmulator != null) renderTextSelection();
     }
 
     private TerminalMirrorView mMirrorView;
+    private float mStereoOffset;
+
+    public void setStereoOffset(float offset) {
+        mStereoOffset = Math.max(-0.1f, Math.min(0.1f, offset));
+        invalidate();
+        if (mMirrorView != null) mMirrorView.invalidate();
+    }
+
+    float getStereoOffsetPixels() {
+        return getWidth() * mStereoOffset;
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        MotionEvent adjusted = MotionEvent.obtain(event);
+        try {
+            adjusted.offsetLocation(-getStereoOffsetPixels(), 0);
+            return super.dispatchTouchEvent(adjusted);
+        } finally {
+            adjusted.recycle();
+        }
+    }
 
     /** Register the second eye. Only this TerminalView owns input and PTY resizing. */
     public void setMirrorView(TerminalMirrorView mirrorView) {
