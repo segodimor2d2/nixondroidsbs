@@ -544,6 +544,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private void updateTerminalOrientation(Configuration configuration) {
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
+        applyTerminalFontSize();
         updateDrawerLayout(landscape);
         findViewById(R.id.vr_alignment_controls).setVisibility(landscape ? View.VISIBLE : View.GONE);
         int progress = mVrAlignment;
@@ -554,6 +555,36 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 ? View.VISIBLE : View.GONE);
         }
         updateScreenPadding();
+    }
+
+    private String getTerminalFontSizeKey() {
+        return getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE
+            ? "landscape" : "portrait";
+    }
+
+    public void applyTerminalFontSize() {
+        android.content.SharedPreferences preferences = getSharedPreferences("terminal_font_sizes", MODE_PRIVATE);
+        int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
+        int portrait = preferences.getInt("portrait", mPreferences.getFontSize());
+        int percentage = getResources().getInteger(R.integer.default_landscape_font_size_percent);
+        int landscapeDefault = Math.max(limits[1], Math.round(portrait * percentage / 100f));
+        android.content.SharedPreferences.Editor editor = preferences.edit();
+        if (!preferences.contains("portrait")) editor.putInt("portrait", portrait);
+        if (!preferences.contains("landscape")) editor.putInt("landscape", landscapeDefault);
+        editor.apply();
+        int size = preferences.getInt(getTerminalFontSizeKey(), portrait);
+        mTerminalView.setTextSize(Math.max(limits[1], Math.min(limits[2], size)));
+    }
+
+    public void changeTerminalFontSize(boolean increase) {
+        android.content.SharedPreferences preferences = getSharedPreferences("terminal_font_sizes", MODE_PRIVATE);
+        String key = getTerminalFontSizeKey();
+        int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
+        int size = preferences.getInt(key, mPreferences.getFontSize()) + (increase ? 2 : -2);
+        size = Math.max(limits[1], Math.min(limits[2], size));
+        preferences.edit().putInt(key, size).apply();
+        if ("portrait".equals(key)) mPreferences.setFontSize(size);
+        mTerminalView.setTextSize(size);
     }
 
     private void updateDrawerLayout(boolean landscape) {

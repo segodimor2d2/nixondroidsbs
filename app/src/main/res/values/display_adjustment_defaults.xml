@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Initial landscape font size as a percentage of the portrait font size.
+         Each orientation keeps its own zoom after the first initialization. -->
+    <integer name="default_landscape_font_size_percent">70</integer>
     <!-- Applied on first installation and when the user presses Reset.
          Existing saved settings are preserved when updating the app. -->
 

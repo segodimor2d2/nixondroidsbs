@@ -88,7 +88,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     public void onCreate() {
         onReloadProperties();
 
-        mActivity.getTerminalView().setTextSize(mActivity.getPreferences().getFontSize());
+        mActivity.applyTerminalFontSize();
         mActivity.getTerminalView().setKeepScreenOn(mActivity.getPreferences().shouldKeepScreenOn());
     }
 
@@ -517,8 +517,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
 
     public void changeFontSize(boolean increase) {
-        mActivity.getPreferences().changeFontSize(increase);
-        mActivity.getTerminalView().setTextSize(mActivity.getPreferences().getFontSize());
+        mActivity.changeTerminalFontSize(increase);
     }
 
 
