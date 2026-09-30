@@ -504,6 +504,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         updateTerminalOrientation(newConfig);
+        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
+            && mTermuxTerminalViewClient != null) {
+            mTermuxTerminalViewClient.hideSoftKeyboard();
+        }
     }
 
     private void updateTerminalOrientation(Configuration configuration) {

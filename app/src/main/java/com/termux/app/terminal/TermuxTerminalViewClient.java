@@ -645,6 +645,15 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
         }
     }
 
+    public void hideSoftKeyboard() {
+        // Cancel a pending keyboard show so it cannot undo the hide after rotation.
+        if (mShowSoftKeyboardRunnable != null)
+            mActivity.getTerminalView().removeCallbacks(mShowSoftKeyboardRunnable);
+        View focusedView = mActivity.getCurrentFocus();
+        KeyboardUtils.hideSoftKeyboard(mActivity,
+            focusedView != null ? focusedView : mActivity.getTerminalView());
+    }
+
     private Runnable getShowSoftKeyboardRunnable() {
         if (mShowSoftKeyboardRunnable == null) {
             mShowSoftKeyboardRunnable = () -> {
