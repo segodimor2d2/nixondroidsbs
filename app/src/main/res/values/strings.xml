@@ -243,8 +243,4 @@
     <string name="eye_padding_value">Screen side padding: %1$.1f%%</string>
     <string name="decrease_display_adjustment">Decrease adjustment</string>
     <string name="increase_display_adjustment">Increase adjustment</string>
-    <string name="left_inner_padding">Left terminal: right padding</string>
-    <string name="left_inner_padding_value">Left terminal: right padding: %1$.1f%%</string>
-    <string name="right_inner_padding">Right terminal: left padding</string>
-    <string name="right_inner_padding_value">Right terminal: left padding: %1$.1f%%</string>
 </resources>

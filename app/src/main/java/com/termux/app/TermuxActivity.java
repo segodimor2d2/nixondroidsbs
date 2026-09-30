@@ -25,7 +25,6 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -194,6 +193,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private static final String ARG_TERMINAL_TOOLBAR_TEXT_INPUT = "terminal_toolbar_text_input";
     private static final String ARG_ACTIVITY_RECREATED = "activity_recreated";
+
+    private int mScreenPadding;
+    private int mSidePadding;
+    private int mVrAlignment = 50;
 
     private static final String LOG_TAG = "TermuxActivity";
 
@@ -493,28 +496,17 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
-        setVrAlignmentControls();
-        setPaddingControl(R.id.screen_padding_slider, R.id.screen_padding_label,
-            R.string.screen_padding_value, "screen_padding", false);
-        setPaddingControl(R.id.eye_padding_slider, R.id.eye_padding_label,
-            R.string.eye_padding_value, "eye_padding", true);
-        setPaddingControl(R.id.left_inner_padding_slider, R.id.left_inner_padding_label,
-            R.string.left_inner_padding_value, "left_inner_padding", true);
-        setPaddingControl(R.id.right_inner_padding_slider, R.id.right_inner_padding_label,
-            R.string.right_inner_padding_value, "right_inner_padding", true);
-        setSliderButtons(R.id.left_inner_padding_slider, R.id.left_inner_padding_minus,
-            R.id.left_inner_padding_plus);
-        setSliderButtons(R.id.right_inner_padding_slider, R.id.right_inner_padding_minus,
-            R.id.right_inner_padding_plus);
-        for (int eyeId : new int[] { R.id.terminal_eye_left, R.id.terminal_eye_right }) {
-            findViewById(eyeId).addOnLayoutChangeListener((v, left, top, right, bottom,
-                oldLeft, oldTop, oldRight, oldBottom) -> {
-                if (right - left != oldRight - oldLeft) updateInnerPadding();
-            });
-        }
-        setSliderButtons(R.id.screen_padding_slider, R.id.screen_padding_minus, R.id.screen_padding_plus);
-        setSliderButtons(R.id.eye_padding_slider, R.id.eye_padding_minus, R.id.eye_padding_plus);
-        setSliderButtons(R.id.vr_alignment_slider, R.id.vr_alignment_minus, R.id.vr_alignment_plus);
+        setAdjustmentButtons("screen_padding", 120, 0, R.id.screen_padding_label,
+            R.string.screen_padding_value, R.id.screen_padding_minus, R.id.screen_padding_plus,
+            false, value -> mScreenPadding = value);
+        setAdjustmentButtons("eye_padding", 80, 0, R.id.eye_padding_label,
+            R.string.eye_padding_value, R.id.eye_padding_minus, R.id.eye_padding_plus,
+            true, value -> mSidePadding = value);
+        int defaultAlignment = getSharedPreferences("vr_alignment", MODE_PRIVATE)
+            .getInt("progress", 20) + 30;
+        setAdjustmentButtons("alignment_steps", 100, defaultAlignment, R.id.vr_alignment_label,
+            R.string.vr_alignment_value, R.id.vr_alignment_minus, R.id.vr_alignment_plus,
+            true, value -> mVrAlignment = value);
         View screen = findViewById(R.id.activity_termux_root_relative_layout);
         screen.addOnLayoutChangeListener((v, left, top, right, bottom,
             oldLeft, oldTop, oldRight, oldBottom) -> {
@@ -543,7 +535,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
         updateDrawerLayout(landscape);
         findViewById(R.id.vr_alignment_controls).setVisibility(landscape ? View.VISIBLE : View.GONE);
-        int progress = ((SeekBar) findViewById(R.id.vr_alignment_slider)).getProgress();
+        int progress = mVrAlignment;
         mTerminalView.setStereoOffset(landscape ? (progress - 50) * 0.005f : 0);
         View mirror = findViewById(R.id.terminal_eye_right);
         if (mirror != null) {
@@ -574,16 +566,14 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             controlsParams.height = height;
             controls.setLayoutParams(controlsParams);
         }
-        arrangeAdjustmentLabel(R.id.screen_padding_label, R.id.screen_padding_slider, landscape);
-        arrangeAdjustmentLabel(R.id.eye_padding_label, R.id.eye_padding_slider, landscape);
-        arrangeAdjustmentLabel(R.id.vr_alignment_label, R.id.vr_alignment_slider, landscape);
-        arrangeAdjustmentLabel(R.id.left_inner_padding_label, R.id.left_inner_padding_slider, landscape);
-        arrangeAdjustmentLabel(R.id.right_inner_padding_label, R.id.right_inner_padding_slider, landscape);
+        arrangeAdjustmentLabel(R.id.screen_padding_label, R.id.screen_padding_plus, landscape);
+        arrangeAdjustmentLabel(R.id.eye_padding_label, R.id.eye_padding_plus, landscape);
+        arrangeAdjustmentLabel(R.id.vr_alignment_label, R.id.vr_alignment_plus, landscape);
     }
 
-    private void arrangeAdjustmentLabel(int labelId, int sliderId, boolean landscape) {
+    private void arrangeAdjustmentLabel(int labelId, int buttonId, boolean landscape) {
         View label = findViewById(labelId);
-        ViewGroup row = (ViewGroup) findViewById(sliderId).getParent();
+        ViewGroup row = (ViewGroup) findViewById(buttonId).getParent();
         ViewGroup section = (ViewGroup) row.getParent();
         ViewGroup target = landscape ? row : section;
         if (label.getParent() != target) {
@@ -599,99 +589,42 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
-    private void setPaddingControl(int sliderId, int labelId, int formatId,
-                                   String key, boolean percentage) {
-        SeekBar slider = findViewById(sliderId);
+    private void setAdjustmentButtons(String key, int maximum, int initial, int labelId,
+                                      int formatId, int minusId, int plusId, boolean percentage,
+                                      java.util.function.IntConsumer setValue) {
+        int[] value = { Math.max(0, Math.min(maximum,
+            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt(key, initial))) };
         TextView label = findViewById(labelId);
-        slider.setProgress(Math.max(0, Math.min(slider.getMax(),
-            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt(key, 0))));
-        label.setText(percentage ? getString(formatId, slider.getProgress() * 0.5f)
-            : getString(formatId, slider.getProgress()));
-        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                label.setText(percentage ? getString(formatId, progress * 0.5f)
-                    : getString(formatId, progress));
-                updateScreenPadding();
-                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
-                    .putInt(key, progress).apply();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
-                    .putInt(key, seekBar.getProgress()).apply();
-            }
-        });
+        View minus = findViewById(minusId);
+        View plus = findViewById(plusId);
+        Runnable refresh = () -> {
+            setValue.accept(value[0]);
+            float display = ("alignment_steps".equals(key) ? value[0] - 50 : value[0]) * 0.5f;
+            label.setText(percentage ? getString(formatId, display) : getString(formatId, value[0]));
+            minus.setEnabled(value[0] > 0);
+            plus.setEnabled(value[0] < maximum);
+        };
+        refresh.run();
+        java.util.function.IntConsumer change = delta -> {
+            value[0] = Math.max(0, Math.min(maximum, value[0] + delta));
+            refresh.run();
+            getSharedPreferences("vr_alignment", MODE_PRIVATE).edit().putInt(key, value[0]).apply();
+            updateTerminalOrientation(getResources().getConfiguration());
+        };
+        minus.setOnClickListener(v -> change.accept(-1));
+        plus.setOnClickListener(v -> change.accept(1));
     }
 
     private void updateScreenPadding() {
-        int general = ((SeekBar) findViewById(R.id.screen_padding_slider)).getProgress();
+        int general = mScreenPadding;
         int pixels = Math.round(general * getResources().getDisplayMetrics().density);
         View screen = findViewById(R.id.activity_termux_root_relative_layout);
         boolean landscape = getResources().getConfiguration().orientation
             == Configuration.ORIENTATION_LANDSCAPE;
-        int progress = ((SeekBar) findViewById(R.id.eye_padding_slider)).getProgress();
+        int progress = mSidePadding;
         int availableWidth = Math.max(0, screen.getWidth() - 2 * pixels);
         int side = landscape ? Math.round(availableWidth * progress * 0.005f) : 0;
         screen.setPadding(pixels + side, pixels, pixels + side, pixels);
-        updateInnerPadding();
-    }
-
-    private void updateInnerPadding() {
-        boolean landscape = getResources().getConfiguration().orientation
-            == Configuration.ORIENTATION_LANDSCAPE;
-        View leftEye = findViewById(R.id.terminal_eye_left);
-        View rightEye = findViewById(R.id.terminal_eye_right);
-        int leftProgress = ((SeekBar) findViewById(R.id.left_inner_padding_slider)).getProgress();
-        int rightProgress = ((SeekBar) findViewById(R.id.right_inner_padding_slider)).getProgress();
-        int leftInset = landscape ? Math.round(leftEye.getWidth() * leftProgress * 0.005f) : 0;
-        int rightInset = landscape ? Math.round(rightEye.getWidth() * rightProgress * 0.005f) : 0;
-        leftEye.setPadding(0, 0, leftInset, 0);
-        rightEye.setPadding(rightInset, 0, 0, 0);
-    }
-
-    private void setVrAlignmentControls() {
-        SeekBar slider = findViewById(R.id.vr_alignment_slider);
-        slider.setProgress(Math.max(0, Math.min(100,
-            getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt("alignment_steps",
-                getSharedPreferences("vr_alignment", MODE_PRIVATE).getInt("progress", 20) + 30))));
-        updateVrAlignmentLabel(slider.getProgress());
-        slider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                updateVrAlignmentLabel(progress);
-                updateTerminalOrientation(getResources().getConfiguration());
-                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
-                    .putInt("alignment_steps", progress).apply();
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {}
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                getSharedPreferences("vr_alignment", MODE_PRIVATE).edit()
-                    .putInt("alignment_steps", seekBar.getProgress()).apply();
-            }
-        });
-    }
-
-    private void setSliderButtons(int sliderId, int minusId, int plusId) {
-        SeekBar slider = findViewById(sliderId);
-        slider.setKeyProgressIncrement(1);
-        findViewById(minusId).setOnClickListener(v ->
-            slider.setProgress(Math.max(0, slider.getProgress() - 1)));
-        findViewById(plusId).setOnClickListener(v ->
-            slider.setProgress(Math.min(slider.getMax(), slider.getProgress() + 1)));
-    }
-
-    private void updateVrAlignmentLabel(int progress) {
-        ((TextView) findViewById(R.id.vr_alignment_label)).setText(
-            getString(R.string.vr_alignment_value, (progress - 50) * 0.5f));
     }
 
     private void setTermuxSessionsListView() {
