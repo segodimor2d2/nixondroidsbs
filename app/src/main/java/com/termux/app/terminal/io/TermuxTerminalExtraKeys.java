@@ -120,7 +120,7 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
     public void onTerminalExtraKeyButtonClick(View view, String key, boolean ctrlDown, boolean altDown, boolean shiftDown, boolean fnDown) {
         if ("KEYBOARD".equals(key)) {
             if(mTermuxTerminalViewClient != null)
-                mActivity.hideKeyboardKeepingTerminalToolbar();
+                mActivity.toggleKeyboardKeepingTerminalToolbar();
         } else if ("HIDE_BAR".equals(key)) {
             mActivity.hideTerminalToolbarOnly();
         } else if ("DRAWER".equals(key)) {

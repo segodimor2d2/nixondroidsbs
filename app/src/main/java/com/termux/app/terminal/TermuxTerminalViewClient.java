@@ -245,6 +245,12 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession currentSession) {
         if (handleVirtualKeys(keyCode, e, true)) return true;
+        if (keyCode == KeyEvent.KEYCODE_W && !e.isAltPressed() && !mVirtualFnKeyDown
+            && (e.isShiftPressed() || readShiftKey())
+            && (e.isCtrlPressed() || readControlKey())) {
+            if (e.getRepeatCount() == 0) mActivity.toggleTerminalToolbar();
+            return true;
+        }
         boolean fontSizeKey = keyCode == KeyEvent.KEYCODE_PLUS
             || keyCode == KeyEvent.KEYCODE_EQUALS || keyCode == KeyEvent.KEYCODE_MINUS;
         // Gboard sends key events without Ctrl in their meta state when Ctrl comes
@@ -379,6 +385,11 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public boolean onCodePoint(int codePoint, boolean ctrlDown, boolean shiftDown, TerminalSession session) {
+        if (ctrlDown && shiftDown && !mVirtualFnKeyDown
+            && Character.toLowerCase(codePoint) == 'w') {
+            mActivity.toggleTerminalToolbar();
+            return true;
+        }
         if (ctrlDown && shiftDown && !mVirtualFnKeyDown
             && (codePoint == '+' || codePoint == '=' || codePoint == '-' || codePoint == '_')) {
             changeFontSize(codePoint == '+' || codePoint == '=');

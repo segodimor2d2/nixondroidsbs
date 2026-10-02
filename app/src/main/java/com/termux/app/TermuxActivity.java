@@ -56,6 +56,7 @@ import com.termux.shared.termux.settings.properties.TermuxAppSharedProperties;
 import com.termux.shared.termux.theme.TermuxThemeUtils;
 import com.termux.shared.theme.NightMode;
 import com.termux.shared.view.ViewUtils;
+import com.termux.shared.view.KeyboardUtils;
 import com.termux.terminal.TerminalSession;
 import com.termux.terminal.TerminalSessionClient;
 import com.termux.view.TerminalView;
@@ -64,6 +65,8 @@ import com.termux.view.TerminalViewClient;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.viewpager.widget.ViewPager;
 
@@ -831,6 +834,21 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         if (toolbar.getVisibility() != visibility) {
             toolbar.setVisibility(visibility);
             updateScreenPadding();
+        }
+    }
+
+    public void toggleKeyboardKeepingTerminalToolbar() {
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(mTerminalView);
+        if (insets != null && insets.isVisible(WindowInsetsCompat.Type.ime())) {
+            hideKeyboardKeepingTerminalToolbar();
+        } else {
+            mHideTerminalToolbar = false;
+            mKeepTerminalToolbarVisible = true;
+            mPreferences.setSoftKeyboardEnabled(true);
+            KeyboardUtils.clearDisableSoftKeyboardFlags(this);
+            mTerminalView.requestFocus();
+            mTerminalView.post(() -> KeyboardUtils.showSoftKeyboard(this, mTerminalView));
+            updateTerminalToolbarKeyboardVisibility(true);
         }
     }
 

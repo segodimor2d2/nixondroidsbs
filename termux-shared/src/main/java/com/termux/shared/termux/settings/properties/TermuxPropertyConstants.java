@@ -327,9 +327,35 @@ public final class TermuxPropertyConstants {
     public static final String KEY_EXTRA_KEYS =  "extra-keys"; // Default: "extra-keys"
     //public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[[ESC, TAB, CTRL, ALT, {key: '-', popup: '|'}, DOWN, UP]]"; // Single row
     // public static final String DEFAULT_IVALUE_EXTRA_KEYS = "[['ESC','/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], ['TAB','CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]"; // Double row
+    // public static final String DEFAULT_IVALUE_EXTRA_KEYS =
+    // "[['ESC',{key: 'HIDE_BAR', display: '▼'},'/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], " +
+    // "['TAB',{key: KEYBOARD, popup: {macro: 'CTRL d', display: 'exit'}},'CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]";
+
+    // public static final String DEFAULT_IVALUE_EXTRA_KEYS =
+    // "[['ESC',{key: 'HIDE_BAR', display: '▼'},'/',{key: '-', popup: '|'},'TAB',{key: KEYBOARD, popup: {macro: 'CTRL d', display: 'exit'}},'CTRL','ALT','LEFT','DOWN','UP','RIGHT']]";
+
+
     public static final String DEFAULT_IVALUE_EXTRA_KEYS =
-    "[['ESC',{key: 'HIDE_BAR', display: '▼'},'/',{key: '-', popup: '|'},'HOME','UP','END','PGUP'], " +
-    "['TAB',{key: KEYBOARD, popup: {macro: 'CTRL d', display: 'exit'}},'CTRL','ALT','LEFT','DOWN','RIGHT','PGDN']]";
+        "[["
+        + "'ESC'"
+        + ",{key: 'HIDE_BAR', display: '▼'}"
+        + ",{key: KEYBOARD, popup: {macro: 'CTRL d', display: 'exit'}}"
+        + ",'TAB'"
+        + ",{macro: 'CTRL d', display: 'Cd', popup: {macro: 'CTRL d'}}"
+        + ",{macro: 'CTRL r', display: 'Cr', popup: {macro: 'CTRL r'}}"
+        + ",{macro: 'CTRL c', display: 'Cc', popup: {macro: 'CTRL c'}}"
+        + ",'BACKSLASH'"
+        + ",'.'"
+        + ",'@'"
+        + ",'/'"
+        + ",'^'"
+        + ",'ENTER'"
+        + ",{macro: 'ESC', display: 'ec', popup: {macro: 'ESC'}}"
+        + ",','"
+        + ",'*'"
+        + ",'#'"
+        + ",'$'"
+        + "]]";
 
     /** Defines the key for extra keys style */
     public static final String KEY_EXTRA_KEYS_STYLE =  "extra-keys-style"; // Default: "extra-keys-style"
