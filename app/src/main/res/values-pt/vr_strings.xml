@@ -28,7 +28,7 @@
     <string name="viewport_pan_right">Mover visualização para a direita</string>
     <string name="viewport_gyroscope_pan">Pan por giroscópio (ON/OFF)</string>
     <string name="viewport_gyroscope_unavailable">Giroscópio indisponível</string>
-    <string name="viewport_center">Centralizar vista</string>
+    <string name="viewport_center">centrer</string>
     <string name="viewport_gyro_sensitivity">Sensibilidade do giroscópio: %1$d%%</string>
     <string name="viewport_gyro_sensitivity_minus">Diminuir sensibilidade do giroscópio</string>
     <string name="viewport_gyro_sensitivity_plus">Aumentar sensibilidade do giroscópio</string>

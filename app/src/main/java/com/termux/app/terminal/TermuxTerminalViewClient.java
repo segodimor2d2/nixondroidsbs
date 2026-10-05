@@ -293,6 +293,8 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
                 mActivity.getDrawer().closeDrawers();
             } else if (unicodeChar == 'k'/* keyboard */) {
                 onToggleSoftKeyboardRequest();
+            } else if (keyCode == KeyEvent.KEYCODE_W) {
+                if (e.getRepeatCount() == 0) mActivity.toggleTerminalToolbar();
             } else if (unicodeChar == 'm'/* menu */) {
                 mActivity.getTerminalView().showContextMenu();
             } else if (unicodeChar == 'r'/* rename */) {
