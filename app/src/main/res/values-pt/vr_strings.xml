@@ -19,17 +19,17 @@
     <string name="hide_display_adjustments">[VR]</string>
     <string name="portrait_screen_padding_value">allPadV: %1$d dp</string>
     <string name="portrait_font_size_value">fontSize: %1$.1f dp</string>
-    <string name="fixed_terminal_viewport">Terminal fixo (200 colunas × 80 linhas)</string>
-    <string name="viewport_zoom_in">Ampliar visualização</string>
-    <string name="viewport_zoom_out">Reduzir visualização</string>
+    <string name="fixed_terminal_viewport">fix term</string>
+    <string name="viewport_zoom_in">zoom +</string>
+    <string name="viewport_zoom_out">zoom -</string>
     <string name="viewport_pan_left">Mover visualização para a esquerda</string>
     <string name="viewport_pan_up">Mover visualização para cima</string>
     <string name="viewport_pan_down">Mover visualização para baixo</string>
     <string name="viewport_pan_right">Mover visualização para a direita</string>
-    <string name="viewport_gyroscope_pan">Pan por giroscópio (ON/OFF)</string>
+    <string name="viewport_gyroscope_pan">giro</string>
     <string name="viewport_gyroscope_unavailable">Giroscópio indisponível</string>
     <string name="viewport_center">centrer</string>
-    <string name="viewport_gyro_sensitivity">Sensibilidade do giroscópio: %1$d%%</string>
+    <string name="viewport_gyro_sensitivity">sens: %1$d%%</string>
     <string name="viewport_gyro_sensitivity_minus">Diminuir sensibilidade do giroscópio</string>
     <string name="viewport_gyro_sensitivity_plus">Aumentar sensibilidade do giroscópio</string>
 </resources>

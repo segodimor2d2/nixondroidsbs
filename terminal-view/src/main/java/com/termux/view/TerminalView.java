@@ -1161,9 +1161,9 @@ public final class TerminalView extends View {
         }
         if (mLeaderActive) {
             float density = getResources().getDisplayMetrics().density;
-            float padding = 6 * density;
+            float padding = 8 * density;
             mLeaderPaint.setTypeface(Typeface.MONOSPACE);
-            mLeaderPaint.setTextSize(20 * getResources().getDisplayMetrics().scaledDensity);
+            mLeaderPaint.setTextSize(10 * getResources().getDisplayMetrics().scaledDensity);
             Paint.FontMetrics metrics = mLeaderPaint.getFontMetrics();
             float baseline = getHeight() - padding - metrics.descent;
             mLeaderPaint.setColor(0xCC000000);

@@ -68,6 +68,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     private void setLeaderActive(boolean active) {
         leadKB = active;
         mActivity.getTerminalView().setLeaderActive(active);
+        if (active) mActivity.getTerminalView().requestFocus();
     }
 
     private boolean handleLeaderCodePoint(int codePoint, boolean shiftDown) {
@@ -90,7 +91,24 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             mActivity.getTerminalView().centerViewport();
             return true;
         }
-        return false;
+        if (codePoint == 'U' || codePoint == 'I') {
+            mActivity.changeTerminalFontSize(codePoint == 'U');
+            return true;
+        }
+        // Reuse the menu controls so preferences, sensor registration and labels stay in sync.
+        final int viewportControlId;
+        switch (codePoint) {
+            case 't': viewportControlId = R.id.fixed_viewport_toggle; break;
+            case 'g': viewportControlId = R.id.viewport_gyroscope_toggle; break;
+            case 'u': viewportControlId = R.id.viewport_zoom_plus; break;
+            case 'i': viewportControlId = R.id.viewport_zoom_minus; break;
+            case 'y': viewportControlId = R.id.viewport_gyro_sensitivity_plus; break;
+            case 'o': viewportControlId = R.id.viewport_gyro_sensitivity_minus; break;
+            default: return true; // Leader owns input until Escape, including unknown commands.
+        }
+        View control = mActivity.findViewById(viewportControlId);
+        if (control != null && control.isEnabled()) control.performClick();
+        return true;
     }
 
     private Runnable mShowSoftKeyboardRunnable;
@@ -118,6 +136,12 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
      */
     public void onCreate() {
         onReloadProperties();
+
+        mActivity.getTermuxActivityRootView().getViewTreeObserver()
+            .addOnGlobalFocusChangeListener((oldFocus, newFocus) -> {
+                if (leadKB && newFocus != mActivity.getTerminalView())
+                    mActivity.getTerminalView().requestFocus();
+            });
 
         mActivity.applyTerminalFontSize();
         mActivity.getTerminalView().setKeepScreenOn(mActivity.getPreferences().shouldKeepScreenOn());
@@ -282,8 +306,15 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     @SuppressLint("RtlHardcoded")
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession currentSession) {
-        if (leadKB && keyCode == KeyEvent.KEYCODE_ESCAPE) {
-            setLeaderActive(false);
+        if (leadKB) {
+            if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
+                setLeaderActive(false);
+            } else {
+                int metaState = e.getMetaState();
+                boolean shiftDown = e.isShiftPressed() || readShiftKey();
+                if (shiftDown) metaState |= KeyEvent.META_SHIFT_ON;
+                handleLeaderCodePoint(e.getUnicodeChar(metaState), shiftDown);
+            }
             return true;
         }
         if (handleVirtualKeys(keyCode, e, true)) return true;
