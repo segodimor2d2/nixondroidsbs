@@ -81,6 +81,14 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             setLeaderActive(false);
             return true;
         }
+        if (codePoint == 'e') {
+            if (mActivity.getDrawer().isDrawerVisible(Gravity.LEFT)) {
+                mActivity.getDrawer().closeDrawers();
+            } else {
+                mActivity.getDrawer().openDrawer(Gravity.LEFT);
+            }
+            return true;
+        }
         if (codePoint == 'w') {
             mActivity.toggleTerminalToolbar();
             // The toolbar may focus its text input; keep leader input on the terminal.
@@ -105,14 +113,18 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             case 'y': viewportControlId = R.id.viewport_gyro_sensitivity_plus; break;
             case 'o': viewportControlId = R.id.viewport_gyro_sensitivity_minus; break;
             case 'R': viewportControlId = R.id.reset_display_adjustments; break;
-            case '>': viewportControlId = R.id.right_inner_padding_minus; break;
-            case '<': viewportControlId = R.id.right_inner_padding_plus; break;
+            case '>': viewportControlId = R.id.viewport_columns_minus; break;
+            case '<': viewportControlId = R.id.viewport_rows_minus; break;
             case 'H': viewportControlId = R.id.screen_padding_plus; break;
             case 'L': viewportControlId = R.id.screen_padding_minus; break;
             case 'J': viewportControlId = R.id.eye_padding_plus; break;
             case 'K': viewportControlId = R.id.eye_padding_minus; break;
-            case 'N': viewportControlId = R.id.left_inner_padding_plus; break;
-            case 'M': viewportControlId = R.id.left_inner_padding_minus; break;
+            case 'N': viewportControlId = R.id.viewport_columns_plus; break;
+            case 'M': viewportControlId = R.id.viewport_rows_plus; break;
+            case '0': viewportControlId = R.id.left_inner_padding_plus; break;
+            case '*': viewportControlId = R.id.left_inner_padding_minus; break;
+            case '#': viewportControlId = R.id.right_inner_padding_plus; break;
+            case '$': viewportControlId = R.id.right_inner_padding_minus; break;
             default: return true; // Leader owns input until Escape, including unknown commands.
         }
         View control = mActivity.findViewById(viewportControlId);
