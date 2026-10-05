@@ -104,6 +104,15 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
             case 'i': viewportControlId = R.id.viewport_zoom_minus; break;
             case 'y': viewportControlId = R.id.viewport_gyro_sensitivity_plus; break;
             case 'o': viewportControlId = R.id.viewport_gyro_sensitivity_minus; break;
+            case 'R': viewportControlId = R.id.reset_display_adjustments; break;
+            case '>': viewportControlId = R.id.right_inner_padding_minus; break;
+            case '<': viewportControlId = R.id.right_inner_padding_plus; break;
+            case 'H': viewportControlId = R.id.screen_padding_plus; break;
+            case 'L': viewportControlId = R.id.screen_padding_minus; break;
+            case 'J': viewportControlId = R.id.eye_padding_plus; break;
+            case 'K': viewportControlId = R.id.eye_padding_minus; break;
+            case 'N': viewportControlId = R.id.left_inner_padding_plus; break;
+            case 'M': viewportControlId = R.id.left_inner_padding_minus; break;
             default: return true; // Leader owns input until Escape, including unknown commands.
         }
         View control = mActivity.findViewById(viewportControlId);
