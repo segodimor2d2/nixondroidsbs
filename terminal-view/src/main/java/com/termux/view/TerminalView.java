@@ -220,6 +220,11 @@ public final class TerminalView extends View {
             }
 
             @Override
+            public void onTwoFingerTap() {
+                mClient.onTwoFingerTap();
+            }
+
+            @Override
             public boolean onSingleTapUp(MotionEvent event) {
                 if (mEmulator == null) return true;
 

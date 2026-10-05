@@ -28,6 +28,9 @@ public interface TerminalViewClient {
      */
     void onSingleTapUp(MotionEvent e);
 
+    /** Toggle the extra keys toolbar after a stationary two-finger tap. */
+    default void onTwoFingerTap() { }
+
     boolean shouldBackButtonBeMappedToEscape();
 
     boolean shouldEnforceCharBasedInput();

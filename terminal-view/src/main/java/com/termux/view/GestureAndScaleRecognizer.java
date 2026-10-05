@@ -3,6 +3,7 @@ package com.termux.view;
 import android.content.Context;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ViewConfiguration;
 import android.view.ScaleGestureDetector;
 
 /** A combination of {@link GestureDetector} and {@link ScaleGestureDetector}. */
@@ -10,6 +11,8 @@ final class GestureAndScaleRecognizer {
 
     public interface Listener {
         boolean onSingleTapUp(MotionEvent e);
+
+        void onTwoFingerTap();
 
         boolean onDoubleTap(MotionEvent e);
 
@@ -30,9 +33,12 @@ final class GestureAndScaleRecognizer {
     private final ScaleGestureDetector mScaleDetector;
     final Listener mListener;
     boolean isAfterLongPress;
+    private final TwoFingerTap mTwoFingerTap;
+    private boolean mMultitouch;
 
     public GestureAndScaleRecognizer(Context context, Listener listener) {
         mListener = listener;
+        mTwoFingerTap = new TwoFingerTap(ViewConfiguration.get(context).getScaledTouchSlop());
 
         mGestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
             @Override
@@ -82,6 +88,7 @@ final class GestureAndScaleRecognizer {
 
             @Override
             public boolean onScale(ScaleGestureDetector detector) {
+                mTwoFingerTap.cancel();
                 return mListener.onScale(detector.getFocusX(), detector.getFocusY(), detector.getScaleFactor());
             }
         });
@@ -89,19 +96,39 @@ final class GestureAndScaleRecognizer {
     }
 
     public void onTouchEvent(MotionEvent event) {
-        mGestureDetector.onTouchEvent(event);
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) {
+            mMultitouch = false;
+            isAfterLongPress = false;
+            mTwoFingerTap.start(event.getEventTime(), event.getPointerId(0), event.getX(), event.getY());
+        }
+        // Include historical positions, so moving away and back is not treated as a tap.
+        for (int h = 0; h < event.getHistorySize(); h++) {
+            for (int i = 0; i < event.getPointerCount(); i++)
+                mTwoFingerTap.move(event.getPointerId(i), event.getHistoricalX(i, h), event.getHistoricalY(i, h));
+        }
+        if (action == MotionEvent.ACTION_POINTER_DOWN) {
+            int index = event.getActionIndex();
+            mTwoFingerTap.add(event.getEventTime(), event.getPointerId(index), event.getX(index), event.getY(index));
+            if (!mMultitouch) {
+                MotionEvent cancel = MotionEvent.obtain(event);
+                cancel.setAction(MotionEvent.ACTION_CANCEL);
+                mGestureDetector.onTouchEvent(cancel);
+                cancel.recycle();
+            }
+            mMultitouch = true;
+        }
+        for (int i = 0; i < event.getPointerCount(); i++)
+            mTwoFingerTap.move(event.getPointerId(i), event.getX(i), event.getY(i));
+        if (action == MotionEvent.ACTION_CANCEL) mTwoFingerTap.cancel();
+        if (!mMultitouch) mGestureDetector.onTouchEvent(event);
         mScaleDetector.onTouchEvent(event);
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-                isAfterLongPress = false;
-                break;
-            case MotionEvent.ACTION_UP:
-                if (!isAfterLongPress) {
-                    // This behaviour is desired when in e.g. vim with mouse events, where we do not
-                    // want to move the cursor when lifting finger after a long press.
-                    mListener.onUp(event);
-                }
-                break;
+        if (action == MotionEvent.ACTION_UP) {
+            if (mMultitouch) {
+                if (mTwoFingerTap.finish(event.getEventTime())) mListener.onTwoFingerTap();
+            } else if (!isAfterLongPress) {
+                mListener.onUp(event);
+            }
         }
     }
 

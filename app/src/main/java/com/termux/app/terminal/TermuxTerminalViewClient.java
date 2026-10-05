@@ -184,6 +184,11 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
 
     @Override
+    public void onTwoFingerTap() {
+        mActivity.toggleTerminalToolbar();
+    }
+
+    @Override
     public void onSingleTapUp(MotionEvent e) {
         TerminalEmulator term = mActivity.getCurrentSession().getEmulator();
 
