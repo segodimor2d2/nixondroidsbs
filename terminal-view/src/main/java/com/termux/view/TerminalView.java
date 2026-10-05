@@ -7,6 +7,7 @@ import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.os.Build;
 import android.os.Handler;
@@ -71,6 +72,14 @@ public final class TerminalView extends View {
     int[] mDefaultSelectors = new int[]{-1,-1,-1,-1};
 
     private boolean mFixedViewport;
+    private boolean mLeaderActive;
+    private final Paint mLeaderPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+
+    public void setLeaderActive(boolean active) {
+        mLeaderActive = active;
+        invalidate();
+        if (mMirrorView != null) mMirrorView.invalidate();
+    }
     private final TerminalViewport mViewport = new TerminalViewport();
     private static final int FIXED_COLUMNS = 200, FIXED_ROWS = 80;
 
@@ -1149,6 +1158,19 @@ public final class TerminalView extends View {
             mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3]);
             canvas.restoreToCount(viewportSave);
 
+        }
+        if (mLeaderActive) {
+            float density = getResources().getDisplayMetrics().density;
+            float padding = 6 * density;
+            mLeaderPaint.setTypeface(Typeface.MONOSPACE);
+            mLeaderPaint.setTextSize(20 * getResources().getDisplayMetrics().scaledDensity);
+            Paint.FontMetrics metrics = mLeaderPaint.getFontMetrics();
+            float baseline = getHeight() - padding - metrics.descent;
+            mLeaderPaint.setColor(0xCC000000);
+            canvas.drawRect(0, baseline + metrics.ascent - padding,
+                mLeaderPaint.measureText("@") + 2 * padding, getHeight(), mLeaderPaint);
+            mLeaderPaint.setColor(0xFFFFFFFF);
+            canvas.drawText("@", padding, baseline, mLeaderPaint);
         }
     }
 

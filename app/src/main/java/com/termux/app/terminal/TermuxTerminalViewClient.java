@@ -63,6 +63,36 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     /** Keeping track of the special keys acting as Ctrl and Fn for the soft keyboard and other hardware keys. */
     boolean mVirtualControlKeyDown, mVirtualFnKeyDown;
 
+    private boolean leadKB;
+
+    private void setLeaderActive(boolean active) {
+        leadKB = active;
+        mActivity.getTerminalView().setLeaderActive(active);
+    }
+
+    private boolean handleLeaderCodePoint(int codePoint, boolean shiftDown) {
+        if (codePoint == '@' && shiftDown) {
+            setLeaderActive(true);
+            return true;
+        }
+        if (!leadKB) return false;
+        if (codePoint == 27) {
+            setLeaderActive(false);
+            return true;
+        }
+        if (codePoint == 'w') {
+            mActivity.toggleTerminalToolbar();
+            // The toolbar may focus its text input; keep leader input on the terminal.
+            mActivity.getTerminalView().requestFocus();
+            return true;
+        }
+        if (codePoint == 'c') {
+            mActivity.getTerminalView().centerViewport();
+            return true;
+        }
+        return false;
+    }
+
     private Runnable mShowSoftKeyboardRunnable;
 
     private boolean mShowSoftKeyboardIgnoreOnce;
@@ -252,6 +282,10 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
     @SuppressLint("RtlHardcoded")
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent e, TerminalSession currentSession) {
+        if (leadKB && keyCode == KeyEvent.KEYCODE_ESCAPE) {
+            setLeaderActive(false);
+            return true;
+        }
         if (handleVirtualKeys(keyCode, e, true)) return true;
         if (keyCode == KeyEvent.KEYCODE_W && !e.isAltPressed() && !mVirtualFnKeyDown
             && (e.isShiftPressed() || readShiftKey())
@@ -395,6 +429,7 @@ public class TermuxTerminalViewClient extends TermuxTerminalViewClientBase {
 
     @Override
     public boolean onCodePoint(int codePoint, boolean ctrlDown, boolean shiftDown, TerminalSession session) {
+        if (handleLeaderCodePoint(codePoint, shiftDown)) return true;
         if (ctrlDown && shiftDown && !mVirtualFnKeyDown
             && Character.toLowerCase(codePoint) == 'w') {
             mActivity.toggleTerminalToolbar();
