@@ -371,6 +371,92 @@
                         android:textColor="@android:color/white"
                         android:backgroundTint="@android:color/black"
                         app:backgroundTint="@android:color/black" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <CheckBox
+                        android:id="@+id/fixed_viewport_toggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/fixed_terminal_viewport" />
+                    <LinearLayout
+                        android:id="@+id/viewport_navigation_controls"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:visibility="gone">
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/viewport_zoom_minus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:text="@string/viewport_zoom_out" />
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/viewport_zoom_plus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:text="@string/viewport_zoom_in" />
+                    </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/viewport_pan_left"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/viewport_pan_left"
+                            android:text="←" />
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/viewport_pan_up"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/viewport_pan_up"
+                            android:text="↑" />
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/viewport_pan_down"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/viewport_pan_down"
+                            android:text="↓" />
+                        <Button
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:id="@+id/viewport_pan_right"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:contentDescription="@string/viewport_pan_right"
+                            android:text="→" />
+                        </LinearLayout>
+                </LinearLayout>
+                </LinearLayout>
+
                     </LinearLayout>
                 </ScrollView>
 

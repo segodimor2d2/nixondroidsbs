@@ -181,6 +181,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private float mTerminalToolbarDefaultHeight;
 
 
+    private static final int MENU_FIXED_VIEWPORT = 12;
+    private static final int MENU_VIEWPORT_ZOOM_IN = 13;
+    private static final int MENU_VIEWPORT_ZOOM_OUT = 14;
     private static final int CONTEXT_MENU_SELECT_URL_ID = 0;
     private static final int CONTEXT_MENU_SHARE_TRANSCRIPT_ID = 1;
     private static final int CONTEXT_MENU_SHARE_SELECTED_TEXT = 10;
@@ -505,6 +508,28 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
+        android.widget.CheckBox fixedViewport = findViewById(R.id.fixed_viewport_toggle);
+        fixedViewport.setChecked(mTerminalView.isFixedViewportEnabled());
+        updateViewportControls();
+        fixedViewport.setOnCheckedChangeListener((button, checked) -> {
+            boolean drawerOpen = getDrawer().isDrawerOpen(Gravity.LEFT);
+            if (checked != mTerminalView.isFixedViewportEnabled())
+                mTerminalView.setFixedViewportEnabled(checked);
+            updateViewportControls();
+            if (drawerOpen) getDrawer().openDrawer(Gravity.LEFT);
+            if (checked) {
+                android.widget.ScrollView controls = findViewById(R.id.display_adjustment_scroll);
+                controls.setVisibility(View.VISIBLE);
+                controls.post(() -> controls.fullScroll(View.FOCUS_DOWN));
+            }
+        });
+        findViewById(R.id.viewport_zoom_minus).setOnClickListener(v -> mTerminalView.zoomViewport(0.8f));
+        findViewById(R.id.viewport_zoom_plus).setOnClickListener(v -> mTerminalView.zoomViewport(1.25f));
+        findViewById(R.id.viewport_pan_left).setOnClickListener(v -> mTerminalView.panViewport(-1, 0));
+        findViewById(R.id.viewport_pan_right).setOnClickListener(v -> mTerminalView.panViewport(1, 0));
+        findViewById(R.id.viewport_pan_up).setOnClickListener(v -> mTerminalView.panViewport(0, -1));
+        findViewById(R.id.viewport_pan_down).setOnClickListener(v -> mTerminalView.panViewport(0, 1));
+
         initializeAdjustmentDefaults(false);
         setAdjustmentControls();
         findViewById(R.id.toggle_display_adjustments).setOnClickListener(v -> {
@@ -570,6 +595,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 ? View.VISIBLE : View.GONE);
         }
         updateScreenPadding();
+    }
+
+    private void updateViewportControls() {
+        boolean enabled = mTerminalView.isFixedViewportEnabled();
+        ((android.widget.CheckBox) findViewById(R.id.fixed_viewport_toggle)).setChecked(enabled);
+        findViewById(R.id.viewport_navigation_controls).setVisibility(enabled ? View.VISIBLE : View.GONE);
+        findViewById(R.id.viewport_zoom_minus).setEnabled(enabled);
+        findViewById(R.id.viewport_zoom_plus).setEnabled(enabled);
+        for (int id : new int[] { R.id.viewport_pan_left, R.id.viewport_pan_right,
+            R.id.viewport_pan_up, R.id.viewport_pan_down }) findViewById(id).setEnabled(enabled);
     }
 
     private String getTerminalFontSizeKey() {
@@ -965,6 +1000,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
         boolean autoFillEnabled = mTerminalView.isAutoFillEnabled();
 
+        menu.add(Menu.NONE, MENU_FIXED_VIEWPORT, Menu.NONE, R.string.fixed_terminal_viewport)
+            .setCheckable(true).setChecked(mTerminalView.isFixedViewportEnabled());
+        menu.add(Menu.NONE, MENU_VIEWPORT_ZOOM_IN, Menu.NONE, R.string.viewport_zoom_in)
+            .setEnabled(mTerminalView.isFixedViewportEnabled());
+        menu.add(Menu.NONE, MENU_VIEWPORT_ZOOM_OUT, Menu.NONE, R.string.viewport_zoom_out)
+            .setEnabled(mTerminalView.isFixedViewportEnabled());
         menu.add(Menu.NONE, CONTEXT_MENU_SELECT_URL_ID, Menu.NONE, R.string.action_select_url);
         menu.add(Menu.NONE, CONTEXT_MENU_SHARE_TRANSCRIPT_ID, Menu.NONE, R.string.action_share_transcript);
         if (!DataUtils.isNullOrEmpty(mTerminalView.getStoredSelectedText()))
@@ -994,6 +1035,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TerminalSession session = getCurrentSession();
 
         switch (item.getItemId()) {
+            case MENU_FIXED_VIEWPORT:
+                mTerminalView.setFixedViewportEnabled(!mTerminalView.isFixedViewportEnabled());
+                updateViewportControls();
+                return true;
+            case MENU_VIEWPORT_ZOOM_IN:
+                mTerminalView.zoomViewport(1.25f);
+                return true;
+            case MENU_VIEWPORT_ZOOM_OUT:
+                mTerminalView.zoomViewport(0.8f);
+                return true;
             case CONTEXT_MENU_SELECT_URL_ID:
                 mTermuxTerminalViewClient.showUrlSelection();
                 return true;

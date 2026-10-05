@@ -19,4 +19,11 @@
     <string name="hide_display_adjustments">[VR]</string>
     <string name="portrait_screen_padding_value">allPadV: %1$d dp</string>
     <string name="portrait_font_size_value">fontSize: %1$.1f dp</string>
+    <string name="fixed_terminal_viewport">Terminal fixo (200 colunas × 80 linhas)</string>
+    <string name="viewport_zoom_in">Ampliar visualização</string>
+    <string name="viewport_zoom_out">Reduzir visualização</string>
+    <string name="viewport_pan_left">Mover visualização para a esquerda</string>
+    <string name="viewport_pan_up">Mover visualização para cima</string>
+    <string name="viewport_pan_down">Mover visualização para baixo</string>
+    <string name="viewport_pan_right">Mover visualização para a direita</string>
 </resources>

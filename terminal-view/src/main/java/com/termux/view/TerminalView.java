@@ -70,6 +70,54 @@ public final class TerminalView extends View {
     int mTopRow;
     int[] mDefaultSelectors = new int[]{-1,-1,-1,-1};
 
+    private boolean mFixedViewport;
+    private final TerminalViewport mViewport = new TerminalViewport();
+    private static final int FIXED_COLUMNS = 200, FIXED_ROWS = 80;
+
+    public boolean isFixedViewportEnabled() { return mFixedViewport; }
+
+    public void setFixedViewportEnabled(boolean enabled) {
+        stopTextSelectionMode();
+        mScroller.abortAnimation();
+        mFixedViewport = enabled;
+        mScaleFactor = 1f;
+        mViewport.x = mViewport.y = 0;
+        getContext().getSharedPreferences("terminal_viewport", Context.MODE_PRIVATE)
+            .edit().putBoolean("enabled", enabled).apply();
+        updateSize();
+        invalidate();
+    }
+
+    /** Move the viewport by a quarter of the visible area, without sending input to the PTY. */
+    public void panViewport(int horizontal, int vertical) {
+        if (!mFixedViewport) return;
+        stopTextSelectionMode();
+        mViewport.pan(horizontal * getWidth() * 0.25f, vertical * getHeight() * 0.25f);
+        clampViewport();
+        invalidate();
+    }
+
+    public void zoomViewport(float factor) {
+        stopTextSelectionMode();
+        if (mFixedViewport) scaleViewport(getWidth() / 2f, getHeight() / 2f, factor);
+    }
+
+    private void scaleViewport(float focusX, float focusY, float factor) {
+        mViewport.scale(focusX, focusY, factor);
+        clampViewport();
+        invalidate();
+    }
+
+    private void clampViewport() {
+        if (mRenderer == null || !mFixedViewport) return;
+        mViewport.clamp(FIXED_COLUMNS * mRenderer.mFontWidth,
+            FIXED_ROWS * mRenderer.mFontLineSpacing + mRenderer.mFontLineSpacingAndAscent,
+            getWidth(), getHeight());
+    }
+
+    private float terminalX(float x) { return mFixedViewport ? mViewport.toTerminalX(x) : x; }
+    private float terminalY(float y) { return mFixedViewport ? mViewport.toTerminalY(y) : y; }
+
     float mScaleFactor = 1.f;
     final GestureAndScaleRecognizer mGestureRecognizer;
 
@@ -135,6 +183,8 @@ public final class TerminalView extends View {
 
     public TerminalView(Context context, AttributeSet attributes) { // NO_UCD (unused code)
         super(context, attributes);
+        android.content.SharedPreferences viewport = context.getSharedPreferences("terminal_viewport", Context.MODE_PRIVATE);
+        mFixedViewport = viewport.getBoolean("enabled", false);
         mGestureRecognizer = new GestureAndScaleRecognizer(context, new GestureAndScaleRecognizer.Listener() {
 
             boolean scrolledWithFinger;
@@ -188,6 +238,11 @@ public final class TerminalView extends View {
             @Override
             public boolean onScale(float focusX, float focusY, float scale) {
                 if (mEmulator == null || isSelectingText()) return true;
+                if (mFixedViewport) {
+                    scrolledWithFinger = true;
+                    scaleViewport(focusX, focusY, scale);
+                    return true;
+                }
                 mScaleFactor *= scale;
                 mScaleFactor = mClient.onScale(mScaleFactor);
                 return true;
@@ -515,6 +570,7 @@ public final class TerminalView extends View {
     public void setTextSize(int textSize) {
         mRenderer = new TerminalRenderer(textSize, mRenderer == null ? Typeface.MONOSPACE : mRenderer.mTypeface);
         updateSize();
+        invalidate();
     }
 
     public void setTypeface(Typeface newTypeface) {
@@ -545,8 +601,8 @@ public final class TerminalView extends View {
      * @return Array with the column and row.
      */
     public int[] getColumnAndRow(MotionEvent event, boolean relativeToScroll) {
-        int column = (int) (event.getX() / mRenderer.mFontWidth);
-        int row = (int) ((event.getY() - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
+        int column = (int) (terminalX(event.getX()) / mRenderer.mFontWidth);
+        int row = (int) ((terminalY(event.getY()) - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
         if (relativeToScroll) {
             row += mTopRow;
         }
@@ -991,8 +1047,10 @@ public final class TerminalView extends View {
         if (viewWidth == 0 || viewHeight == 0 || mTermSession == null) return;
 
         // Set to 80 and 24 if you want to enable vttest.
-        int newColumns = Math.max(4, (int) (viewWidth / mRenderer.mFontWidth));
-        int newRows = Math.max(4, (viewHeight - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
+        int newColumns = mFixedViewport ? FIXED_COLUMNS : Math.max(4, (int) (viewWidth / mRenderer.mFontWidth));
+        int newRows = mFixedViewport ? FIXED_ROWS : Math.max(4, (viewHeight - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
+        clampViewport();
+        invalidate();
 
         if (mEmulator == null || (newColumns != mEmulator.mColumns || newRows != mEmulator.mRows)) {
             mTermSession.updateSize(newColumns, newRows, (int) mRenderer.getFontWidth(), mRenderer.getFontLineSpacing());
@@ -1061,7 +1119,14 @@ public final class TerminalView extends View {
                 mTextSelectionCursorController.getSelectors(sel);
             }
 
+            canvas.drawColor(mEmulator.mColors.mCurrentColors[com.termux.terminal.TextStyle.COLOR_INDEX_BACKGROUND]);
+            int viewportSave = canvas.save();
+            if (mFixedViewport) {
+                canvas.translate(-mViewport.x, -mViewport.y);
+                canvas.scale(mViewport.zoom, mViewport.zoom);
+            }
             mRenderer.render(mEmulator, canvas, mTopRow, sel[0], sel[1], sel[2], sel[3]);
+            canvas.restoreToCount(viewportSave);
 
         }
     }
@@ -1075,22 +1140,22 @@ public final class TerminalView extends View {
     }
 
     public int getCursorX(float x) {
-        return (int) (x / mRenderer.mFontWidth);
+        return (int) (terminalX(x) / mRenderer.mFontWidth);
     }
 
     public int getCursorY(float y) {
-        return (int) (((y - 40) / mRenderer.mFontLineSpacing) + mTopRow);
+        return (int) (((terminalY(y) - 40) / mRenderer.mFontLineSpacing) + mTopRow);
     }
 
     public int getPointX(int cx) {
         if (cx > mEmulator.mColumns) {
             cx = mEmulator.mColumns;
         }
-        return Math.round(cx * mRenderer.mFontWidth);
+        return Math.round(cx * mRenderer.mFontWidth * (mFixedViewport ? mViewport.zoom : 1f) - (mFixedViewport ? mViewport.x : 0));
     }
 
     public int getPointY(int cy) {
-        return Math.round((cy - mTopRow) * mRenderer.mFontLineSpacing);
+        return Math.round((cy - mTopRow) * mRenderer.mFontLineSpacing * (mFixedViewport ? mViewport.zoom : 1f) - (mFixedViewport ? mViewport.y : 0));
     }
 
     public int getTopRow() {

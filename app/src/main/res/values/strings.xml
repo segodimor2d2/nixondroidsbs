@@ -250,4 +250,11 @@
     <string name="hide_display_adjustments">Hide adjustments</string>
     <string name="portrait_screen_padding_value">allPadV: %1$d dp</string>
     <string name="portrait_font_size_value">fontSize: %1$.1f dp</string>
+    <string name="fixed_terminal_viewport">Fixed terminal (200 columns × 80 rows)</string>
+    <string name="viewport_zoom_in">Zoom in viewport</string>
+    <string name="viewport_zoom_out">Zoom out viewport</string>
+    <string name="viewport_pan_left">Move view left</string>
+    <string name="viewport_pan_up">Move view up</string>
+    <string name="viewport_pan_down">Move view down</string>
+    <string name="viewport_pan_right">Move view right</string>
 </resources>
