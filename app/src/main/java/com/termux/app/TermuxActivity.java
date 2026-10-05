@@ -548,6 +548,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             getSharedPreferences("terminal_viewport", MODE_PRIVATE).getInt("gyroscope_sensitivity", 100)));
         mGyroscopePan.setSensitivity(mGyroscopeSensitivityPercent / 100f);
         updateGyroscopeSensitivityLabel();
+        findViewById(R.id.viewport_columns_minus).setOnClickListener(v -> changeFixedViewportDimensions(-1, 0));
+        findViewById(R.id.viewport_columns_plus).setOnClickListener(v -> changeFixedViewportDimensions(1, 0));
+        findViewById(R.id.viewport_rows_minus).setOnClickListener(v -> changeFixedViewportDimensions(0, -1));
+        findViewById(R.id.viewport_rows_plus).setOnClickListener(v -> changeFixedViewportDimensions(0, 1));
         findViewById(R.id.viewport_gyro_sensitivity_minus).setOnClickListener(v -> changeGyroscopeSensitivity(-10));
         findViewById(R.id.viewport_gyro_sensitivity_plus).setOnClickListener(v -> changeGyroscopeSensitivity(10));
         findViewById(R.id.viewport_center).setOnClickListener(v -> {
@@ -663,6 +667,26 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         findViewById(R.id.viewport_gyroscope_toggle).setEnabled(enabled && mPanGyroscope != null);
         updateGyroscopeSensitivityLabel();
         updateGyroscopePanRegistration();
+        updateFixedViewportDimensions();
+    }
+
+    private void changeFixedViewportDimensions(int columnsDelta, int rowsDelta) {
+        mTerminalView.changeFixedViewportSize(columnsDelta, rowsDelta);
+        updateFixedViewportDimensions();
+    }
+
+    private void updateFixedViewportDimensions() {
+        int columns = mTerminalView.getFixedColumns();
+        int rows = mTerminalView.getFixedRows();
+        boolean enabled = mTerminalView.isFixedViewportEnabled();
+        ((TextView) findViewById(R.id.viewport_columns_label)).setText(
+            getString(R.string.viewport_columns_value, columns));
+        ((TextView) findViewById(R.id.viewport_rows_label)).setText(
+            getString(R.string.viewport_rows_value, rows));
+        findViewById(R.id.viewport_columns_minus).setEnabled(enabled && columns > 4);
+        findViewById(R.id.viewport_columns_plus).setEnabled(enabled && columns < 500);
+        findViewById(R.id.viewport_rows_minus).setEnabled(enabled && rows > 4);
+        findViewById(R.id.viewport_rows_plus).setEnabled(enabled && rows < 300);
     }
 
     private void changeGyroscopeSensitivity(int delta) {

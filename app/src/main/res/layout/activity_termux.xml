@@ -387,6 +387,66 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:visibility="gone">
+                    <TextView
+                        android:id="@+id/viewport_columns_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/viewport_columns_minus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:contentDescription="@string/decrease_display_adjustment"
+                            android:text="−" />
+                        <Button
+                            android:id="@+id/viewport_columns_plus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:contentDescription="@string/increase_display_adjustment"
+                            android:text="+" />
+                    </LinearLayout>
+                    <TextView
+                        android:id="@+id/viewport_rows_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/viewport_rows_minus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:contentDescription="@string/decrease_display_adjustment"
+                            android:text="−" />
+                        <Button
+                            android:id="@+id/viewport_rows_plus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:contentDescription="@string/increase_display_adjustment"
+                            android:text="+" />
+                    </LinearLayout>
                     <CheckBox
                         android:id="@+id/viewport_gyroscope_toggle"
                         android:layout_width="match_parent"

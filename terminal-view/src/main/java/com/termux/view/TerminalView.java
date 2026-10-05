@@ -81,7 +81,23 @@ public final class TerminalView extends View {
         if (mMirrorView != null) mMirrorView.invalidate();
     }
     private final TerminalViewport mViewport = new TerminalViewport();
-    private static final int FIXED_COLUMNS = 200, FIXED_ROWS = 80;
+    private int mFixedColumns = 200, mFixedRows = 80;
+
+    public int getFixedColumns() { return mFixedColumns; }
+    public int getFixedRows() { return mFixedRows; }
+
+    public void changeFixedViewportSize(int columnsDelta, int rowsDelta) {
+        mFixedColumns = Math.max(4, Math.min(500, mFixedColumns + columnsDelta));
+        mFixedRows = Math.max(4, Math.min(300, mFixedRows + rowsDelta));
+        stopTextSelectionMode();
+        mScroller.abortAnimation();
+        getContext().getSharedPreferences("terminal_viewport", Context.MODE_PRIVATE)
+            .edit().putInt("columns", mFixedColumns).putInt("rows", mFixedRows).apply();
+        updateSize();
+        clampViewport();
+        invalidate();
+        if (mMirrorView != null) mMirrorView.invalidate();
+    }
 
     public boolean isFixedViewportEnabled() { return mFixedViewport; }
 
@@ -115,8 +131,8 @@ public final class TerminalView extends View {
     public void centerViewport() {
         if (!mFixedViewport || mRenderer == null) return;
         stopTextSelectionMode();
-        mViewport.center(FIXED_COLUMNS * mRenderer.mFontWidth,
-            FIXED_ROWS * mRenderer.mFontLineSpacing + mRenderer.mFontLineSpacingAndAscent,
+        mViewport.center(mFixedColumns * mRenderer.mFontWidth,
+            mFixedRows * mRenderer.mFontLineSpacing + mRenderer.mFontLineSpacingAndAscent,
             getWidth(), getHeight());
         clampViewport();
         invalidate();
@@ -135,8 +151,8 @@ public final class TerminalView extends View {
 
     private void clampViewport() {
         if (mRenderer == null || !mFixedViewport) return;
-        mViewport.clamp(FIXED_COLUMNS * mRenderer.mFontWidth,
-            FIXED_ROWS * mRenderer.mFontLineSpacing + mRenderer.mFontLineSpacingAndAscent,
+        mViewport.clamp(mFixedColumns * mRenderer.mFontWidth,
+            mFixedRows * mRenderer.mFontLineSpacing + mRenderer.mFontLineSpacingAndAscent,
             getWidth(), getHeight());
     }
 
@@ -210,6 +226,8 @@ public final class TerminalView extends View {
         super(context, attributes);
         android.content.SharedPreferences viewport = context.getSharedPreferences("terminal_viewport", Context.MODE_PRIVATE);
         mFixedViewport = viewport.getBoolean("enabled", false);
+        mFixedColumns = Math.max(4, Math.min(500, viewport.getInt("columns", 200)));
+        mFixedRows = Math.max(4, Math.min(300, viewport.getInt("rows", 80)));
         mGestureRecognizer = new GestureAndScaleRecognizer(context, new GestureAndScaleRecognizer.Listener() {
 
             boolean scrolledWithFinger;
@@ -1077,8 +1095,8 @@ public final class TerminalView extends View {
         if (viewWidth == 0 || viewHeight == 0 || mTermSession == null) return;
 
         // Set to 80 and 24 if you want to enable vttest.
-        int newColumns = mFixedViewport ? FIXED_COLUMNS : Math.max(4, (int) (viewWidth / mRenderer.mFontWidth));
-        int newRows = mFixedViewport ? FIXED_ROWS : Math.max(4, (viewHeight - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
+        int newColumns = mFixedViewport ? mFixedColumns : Math.max(4, (int) (viewWidth / mRenderer.mFontWidth));
+        int newRows = mFixedViewport ? mFixedRows : Math.max(4, (viewHeight - mRenderer.mFontLineSpacingAndAscent) / mRenderer.mFontLineSpacing);
         clampViewport();
         invalidate();
 

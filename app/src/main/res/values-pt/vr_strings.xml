@@ -32,4 +32,6 @@
     <string name="viewport_gyro_sensitivity">sens: %1$d%%</string>
     <string name="viewport_gyro_sensitivity_minus">Diminuir sensibilidade do giroscópio</string>
     <string name="viewport_gyro_sensitivity_plus">Aumentar sensibilidade do giroscópio</string>
+    <string name="viewport_columns_value">Colunas: %1$d</string>
+    <string name="viewport_rows_value">Linhas: %1$d</string>
 </resources>
