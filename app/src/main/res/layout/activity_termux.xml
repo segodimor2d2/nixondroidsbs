@@ -28,6 +28,7 @@
                 android:layout_height="match_parent"
                 android:orientation="horizontal"
                 android:baselineAligned="false"
+                android:splitMotionEvents="false"
                 android:background="@android:color/black">
 
                 <FrameLayout

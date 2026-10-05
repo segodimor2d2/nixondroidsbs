@@ -635,8 +635,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     }
 
     private void updateTerminalOrientation(Configuration configuration) {
-        if (mTerminalOrientation != configuration.orientation)
-            mKeepTerminalToolbarVisible = false;
         mTerminalOrientation = configuration.orientation;
         boolean landscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE;
         applyTerminalFontSize();
@@ -990,12 +988,6 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         updateTerminalToolbarKeyboardVisibility(false);
     }
 
-    public void hideTerminalToolbarOnly() {
-        mHideTerminalToolbar = true;
-        mKeepTerminalToolbarVisible = false;
-        updateTerminalToolbarKeyboardVisibility(false);
-    }
-
     public void showTerminalToolbarOnTerminalTap() {
         mHideTerminalToolbar = false;
         updateTerminalToolbarKeyboardVisibility(true);
@@ -1005,9 +997,12 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         final ViewPager terminalToolbarViewPager = getTerminalToolbarViewPager();
         if (terminalToolbarViewPager == null) return;
 
-        final boolean showNow = mPreferences.toogleShowTerminalToolbar();
-        Logger.showToast(this, (showNow ? getString(R.string.msg_enabling_terminal_toolbar) : getString(R.string.msg_disabling_terminal_toolbar)), true);
+        final boolean showNow = terminalToolbarViewPager.getVisibility() != View.VISIBLE;
+        mPreferences.setShowTerminalToolbar(showNow);
+        mHideTerminalToolbar = !showNow;
+        mKeepTerminalToolbarVisible = showNow;
         terminalToolbarViewPager.setVisibility(showNow ? View.VISIBLE : View.GONE);
+        updateScreenPadding();
         if (showNow && isTerminalToolbarTextInputViewSelected()) {
             // Focus the text input view if just revealed.
             findViewById(R.id.terminal_toolbar_text_input).requestFocus();

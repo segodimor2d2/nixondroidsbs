@@ -122,7 +122,7 @@ public class TermuxTerminalExtraKeys extends TerminalExtraKeys {
             if(mTermuxTerminalViewClient != null)
                 mActivity.toggleKeyboardKeepingTerminalToolbar();
         } else if ("HIDE_BAR".equals(key)) {
-            mActivity.hideTerminalToolbarOnly();
+            mActivity.toggleTerminalToolbar();
         } else if ("DRAWER".equals(key)) {
             DrawerLayout drawerLayout = mTermuxTerminalViewClient.getActivity().getDrawer();
             if (drawerLayout.isDrawerOpen(Gravity.LEFT))
