@@ -386,6 +386,11 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:visibility="gone">
+                    <CheckBox
+                        android:id="@+id/viewport_gyroscope_toggle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/viewport_gyroscope_pan" />
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

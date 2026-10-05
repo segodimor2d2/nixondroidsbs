@@ -90,9 +90,15 @@ public final class TerminalView extends View {
 
     /** Move the viewport by a quarter of the visible area, without sending input to the PTY. */
     public void panViewport(int horizontal, int vertical) {
-        if (!mFixedViewport) return;
         stopTextSelectionMode();
-        mViewport.pan(horizontal * getWidth() * 0.25f, vertical * getHeight() * 0.25f);
+        panViewportPixels(horizontal * getWidth() * 0.25f, vertical * getHeight() * 0.25f);
+    }
+
+    /** Pan in screen pixels, leaving zoom and PTY dimensions unchanged. */
+    public void panViewportPixels(float dx, float dy) {
+        if (!mFixedViewport) return;
+        if (isSelectingText()) return;
+        mViewport.pan(dx, dy);
         clampViewport();
         invalidate();
     }

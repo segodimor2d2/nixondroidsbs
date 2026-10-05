@@ -257,4 +257,6 @@
     <string name="viewport_pan_up">Move view up</string>
     <string name="viewport_pan_down">Move view down</string>
     <string name="viewport_pan_right">Move view right</string>
+    <string name="viewport_gyroscope_pan">Gyroscope pan (ON/OFF)</string>
+    <string name="viewport_gyroscope_unavailable">Gyroscope unavailable</string>
 </resources>

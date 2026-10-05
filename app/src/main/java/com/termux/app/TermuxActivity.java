@@ -11,6 +11,10 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.ContextMenu;
@@ -181,6 +185,23 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private float mTerminalToolbarDefaultHeight;
 
 
+    private SensorManager mPanSensorManager;
+    private Sensor mPanGyroscope;
+    private boolean mGyroscopePanEnabled, mGyroscopePanRegistered, mGyroscopePanForeground;
+    private final GyroscopePan mGyroscopePan = new GyroscopePan();
+    private final SensorEventListener mPanSensorListener = new SensorEventListener() {
+        @Override public void onSensorChanged(SensorEvent event) {
+            if (!mGyroscopePanRegistered || mTerminalView == null
+                || !mTerminalView.isFixedViewportEnabled()) return;
+            float[] movement = mGyroscopePan.movement(event.timestamp, event.values[0], event.values[1],
+                getWindowManager().getDefaultDisplay().getRotation(),
+                mTerminalView.getWidth(), mTerminalView.getHeight());
+            if (movement[0] != 0 || movement[1] != 0)
+                mTerminalView.panViewportPixels(movement[0], movement[1]);
+        }
+        @Override public void onAccuracyChanged(Sensor sensor, int accuracy) { }
+    };
+
     private static final int MENU_FIXED_VIEWPORT = 12;
     private static final int MENU_VIEWPORT_ZOOM_IN = 13;
     private static final int MENU_VIEWPORT_ZOOM_OUT = 14;
@@ -326,6 +347,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         Logger.logVerbose(LOG_TAG, "onResume");
 
         if (mIsInvalidState) return;
+        mGyroscopePanForeground = true;
+        updateGyroscopePanRegistration();
 
         if (mTermuxTerminalSessionActivityClient != null)
             mTermuxTerminalSessionActivityClient.onResume();
@@ -338,6 +361,13 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         TermuxCrashUtils.notifyAppCrashFromCrashLogFile(this, LOG_TAG);
 
         mIsOnResumeAfterOnCreate = false;
+    }
+
+    @Override
+    protected void onPause() {
+        mGyroscopePanForeground = false;
+        updateGyroscopePanRegistration();
+        super.onPause();
     }
 
     @Override
@@ -508,6 +538,20 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
+        mPanSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mPanGyroscope = mPanSensorManager == null ? null
+            : mPanSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+        mGyroscopePanEnabled = mPanGyroscope != null
+            && getSharedPreferences("terminal_viewport", MODE_PRIVATE).getBoolean("gyroscope_pan", false);
+        android.widget.CheckBox gyroPan = findViewById(R.id.viewport_gyroscope_toggle);
+        gyroPan.setChecked(mGyroscopePanEnabled);
+        if (mPanGyroscope == null) gyroPan.setText(R.string.viewport_gyroscope_unavailable);
+        gyroPan.setOnCheckedChangeListener((button, checked) -> {
+            mGyroscopePanEnabled = checked;
+            getSharedPreferences("terminal_viewport", MODE_PRIVATE).edit()
+                .putBoolean("gyroscope_pan", checked).apply();
+            updateGyroscopePanRegistration();
+        });
         android.widget.CheckBox fixedViewport = findViewById(R.id.fixed_viewport_toggle);
         fixedViewport.setChecked(mTerminalView.isFixedViewportEnabled());
         updateViewportControls();
@@ -570,6 +614,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+        mGyroscopePan.reset();
         boolean enteredLandscape = newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE
             && mTerminalOrientation != Configuration.ORIENTATION_LANDSCAPE;
         updateTerminalOrientation(newConfig);
@@ -605,6 +650,27 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         findViewById(R.id.viewport_zoom_plus).setEnabled(enabled);
         for (int id : new int[] { R.id.viewport_pan_left, R.id.viewport_pan_right,
             R.id.viewport_pan_up, R.id.viewport_pan_down }) findViewById(id).setEnabled(enabled);
+        findViewById(R.id.viewport_gyroscope_toggle).setEnabled(enabled && mPanGyroscope != null);
+        updateGyroscopePanRegistration();
+    }
+
+    private void updateGyroscopePanRegistration() {
+        boolean active = mGyroscopePanForeground && mGyroscopePanEnabled && mPanGyroscope != null
+            && mTerminalView != null && mTerminalView.isFixedViewportEnabled();
+        if (active == mGyroscopePanRegistered) return;
+        mGyroscopePan.reset();
+        if (active) {
+            mGyroscopePanRegistered = mPanSensorManager.registerListener(mPanSensorListener,
+                mPanGyroscope, SensorManager.SENSOR_DELAY_GAME);
+            if (!mGyroscopePanRegistered) {
+                mGyroscopePanEnabled = false;
+                ((android.widget.CheckBox) findViewById(R.id.viewport_gyroscope_toggle)).setChecked(false);
+                Toast.makeText(this, R.string.viewport_gyroscope_unavailable, Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            if (mPanSensorManager != null) mPanSensorManager.unregisterListener(mPanSensorListener);
+            mGyroscopePanRegistered = false;
+        }
     }
 
     private String getTerminalFontSizeKey() {

@@ -26,4 +26,6 @@
     <string name="viewport_pan_up">Mover visualização para cima</string>
     <string name="viewport_pan_down">Mover visualização para baixo</string>
     <string name="viewport_pan_right">Mover visualização para a direita</string>
+    <string name="viewport_gyroscope_pan">Pan por giroscópio (ON/OFF)</string>
+    <string name="viewport_gyroscope_unavailable">Giroscópio indisponível</string>
 </resources>
