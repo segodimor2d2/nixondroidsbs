@@ -45,6 +45,19 @@ public class TerminalViewportTest {
         assertEquals(0, viewport.y, 0.001f);
     }
 
+    @Test public void centeringPreservesZoomAndFindsMiddleOfVisibleArea() {
+        TerminalViewport viewport = new TerminalViewport();
+        viewport.zoom = 2;
+        viewport.pan(500, 300);
+        viewport.center(1000, 800, 400, 300);
+        assertEquals(500, viewport.toTerminalX(200), 0.001f);
+        assertEquals(400, viewport.toTerminalY(150), 0.001f);
+        assertEquals(2, viewport.zoom, 0.001f);
+        viewport.center(100, 100, 400, 300);
+        assertEquals(0, viewport.x, 0.001f);
+        assertEquals(0, viewport.y, 0.001f);
+    }
+
     @Test public void zoomLimitsKeepCoordinateConversionFinite() {
         TerminalViewport viewport = new TerminalViewport();
         viewport.scale(0, 0, 1000);

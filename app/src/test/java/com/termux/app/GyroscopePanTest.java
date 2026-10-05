@@ -11,11 +11,21 @@ public class GyroscopePanTest {
     }
 
     @Test public void movementFollowsScreenOrientation() {
-        float[][] expected = {{-3, -6}, {6, -3}, {3, 6}, {-6, 3}};
+        float[][] expected = {{3, 6}, {-6, 3}, {-3, -6}, {6, -3}};
         for (int rotation = 0; rotation < 4; rotation++) {
             GyroscopePan pan = new GyroscopePan();
             pan.movement(1_000_000_000L, 0, 0, rotation, 100, 100);
             assertArrayEquals(expected[rotation], pan.movement(1_020_000_000L, 2, 1, rotation, 100, 100), 0.001f);
+        }
+    }
+
+    @Test public void sensitivityScalesMovementAndIsBounded() {
+        for (float[] sample : new float[][] {{0.5f, 1.5f, 3}, {2, 6, 12}, {0, 0.3f, 0.6f}, {10, 9, 18}}) {
+            GyroscopePan pan = new GyroscopePan();
+            pan.setSensitivity(sample[0]);
+            pan.movement(1_000_000_000L, 0, 0, 0, 100, 100);
+            assertArrayEquals(new float[] {sample[1], sample[2]},
+                pan.movement(1_020_000_000L, 2, 1, 0, 100, 100), 0.001f);
         }
     }
 

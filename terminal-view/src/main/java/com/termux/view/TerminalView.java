@@ -103,6 +103,16 @@ public final class TerminalView extends View {
         invalidate();
     }
 
+    public void centerViewport() {
+        if (!mFixedViewport || mRenderer == null) return;
+        stopTextSelectionMode();
+        mViewport.center(FIXED_COLUMNS * mRenderer.mFontWidth,
+            FIXED_ROWS * mRenderer.mFontLineSpacing + mRenderer.mFontLineSpacingAndAscent,
+            getWidth(), getHeight());
+        clampViewport();
+        invalidate();
+    }
+
     public void zoomViewport(float factor) {
         stopTextSelectionMode();
         if (mFixedViewport) scaleViewport(getWidth() / 2f, getHeight() / 2f, factor);

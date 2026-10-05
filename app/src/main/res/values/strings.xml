@@ -259,4 +259,8 @@
     <string name="viewport_pan_right">Move view right</string>
     <string name="viewport_gyroscope_pan">Gyroscope pan (ON/OFF)</string>
     <string name="viewport_gyroscope_unavailable">Gyroscope unavailable</string>
+    <string name="viewport_center">Center view</string>
+    <string name="viewport_gyro_sensitivity">Gyroscope sensitivity: %1$d%%</string>
+    <string name="viewport_gyro_sensitivity_minus">Decrease gyroscope sensitivity</string>
+    <string name="viewport_gyro_sensitivity_plus">Increase gyroscope sensitivity</string>
 </resources>

@@ -188,6 +188,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
     private SensorManager mPanSensorManager;
     private Sensor mPanGyroscope;
     private boolean mGyroscopePanEnabled, mGyroscopePanRegistered, mGyroscopePanForeground;
+    private int mGyroscopeSensitivityPercent = 100;
     private final GyroscopePan mGyroscopePan = new GyroscopePan();
     private final SensorEventListener mPanSensorListener = new SensorEventListener() {
         @Override public void onSensorChanged(SensorEvent event) {
@@ -543,6 +544,16 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             : mPanSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
         mGyroscopePanEnabled = mPanGyroscope != null
             && getSharedPreferences("terminal_viewport", MODE_PRIVATE).getBoolean("gyroscope_pan", false);
+        mGyroscopeSensitivityPercent = Math.max(10, Math.min(300,
+            getSharedPreferences("terminal_viewport", MODE_PRIVATE).getInt("gyroscope_sensitivity", 100)));
+        mGyroscopePan.setSensitivity(mGyroscopeSensitivityPercent / 100f);
+        updateGyroscopeSensitivityLabel();
+        findViewById(R.id.viewport_gyro_sensitivity_minus).setOnClickListener(v -> changeGyroscopeSensitivity(-10));
+        findViewById(R.id.viewport_gyro_sensitivity_plus).setOnClickListener(v -> changeGyroscopeSensitivity(10));
+        findViewById(R.id.viewport_center).setOnClickListener(v -> {
+            mGyroscopePan.reset();
+            mTerminalView.centerViewport();
+        });
         android.widget.CheckBox gyroPan = findViewById(R.id.viewport_gyroscope_toggle);
         gyroPan.setChecked(mGyroscopePanEnabled);
         if (mPanGyroscope == null) gyroPan.setText(R.string.viewport_gyroscope_unavailable);
@@ -650,8 +661,27 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         findViewById(R.id.viewport_zoom_plus).setEnabled(enabled);
         for (int id : new int[] { R.id.viewport_pan_left, R.id.viewport_pan_right,
             R.id.viewport_pan_up, R.id.viewport_pan_down }) findViewById(id).setEnabled(enabled);
+        findViewById(R.id.viewport_center).setEnabled(enabled);
         findViewById(R.id.viewport_gyroscope_toggle).setEnabled(enabled && mPanGyroscope != null);
+        updateGyroscopeSensitivityLabel();
         updateGyroscopePanRegistration();
+    }
+
+    private void changeGyroscopeSensitivity(int delta) {
+        mGyroscopeSensitivityPercent = Math.max(10, Math.min(300, mGyroscopeSensitivityPercent + delta));
+        mGyroscopePan.setSensitivity(mGyroscopeSensitivityPercent / 100f);
+        getSharedPreferences("terminal_viewport", MODE_PRIVATE).edit()
+            .putInt("gyroscope_sensitivity", mGyroscopeSensitivityPercent).apply();
+        updateGyroscopeSensitivityLabel();
+    }
+
+    private void updateGyroscopeSensitivityLabel() {
+        ((TextView) findViewById(R.id.viewport_gyro_sensitivity_label)).setText(
+            getString(R.string.viewport_gyro_sensitivity, mGyroscopeSensitivityPercent));
+        boolean available = mPanGyroscope != null && mTerminalView != null
+            && mTerminalView.isFixedViewportEnabled();
+        findViewById(R.id.viewport_gyro_sensitivity_minus).setEnabled(available && mGyroscopeSensitivityPercent > 10);
+        findViewById(R.id.viewport_gyro_sensitivity_plus).setEnabled(available && mGyroscopeSensitivityPercent < 300);
     }
 
     private void updateGyroscopePanRegistration() {

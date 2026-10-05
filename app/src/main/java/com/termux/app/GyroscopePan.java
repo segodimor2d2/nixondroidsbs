@@ -3,6 +3,11 @@ package com.termux.app;
 /** Converts angular velocity to viewport movement, independent of the terminal grid. */
 final class GyroscopePan {
     private long previousTimestamp;
+    private float sensitivity = 1f;
+
+    void setSensitivity(float value) {
+        sensitivity = Math.max(0.1f, Math.min(3f, value));
+    }
 
     void reset() { previousTimestamp = 0; }
 
@@ -24,6 +29,6 @@ final class GyroscopePan {
         // Suppress small sensor noise when the phone is still.
         if (Math.abs(x) < 0.015f) x = 0;
         if (Math.abs(y) < 0.015f) y = 0;
-        return new float[] {x * seconds * width * 1.5f, y * seconds * height * 1.5f};
+        return new float[] {-x * seconds * width * 1.5f * sensitivity, -y * seconds * height * 1.5f * sensitivity};
     }
 }

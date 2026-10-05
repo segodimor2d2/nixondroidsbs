@@ -17,6 +17,11 @@ final class TerminalViewport {
         y += dy;
     }
 
+    void center(float terminalWidth, float terminalHeight, float viewWidth, float viewHeight) {
+        x = Math.max(0, (terminalWidth * zoom - viewWidth) / 2f);
+        y = Math.max(0, (terminalHeight * zoom - viewHeight) / 2f);
+    }
+
     void clamp(float terminalWidth, float terminalHeight, float viewWidth, float viewHeight) {
         x = Math.max(0, Math.min(x, Math.max(0, terminalWidth * zoom - viewWidth)));
         y = Math.max(0, Math.min(y, Math.max(0, terminalHeight * zoom - viewHeight)));

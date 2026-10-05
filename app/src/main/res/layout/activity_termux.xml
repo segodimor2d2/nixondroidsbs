@@ -391,6 +391,44 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/viewport_gyroscope_pan" />
+                    <Button
+                        android:id="@+id/viewport_center"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:textColor="@android:color/white"
+                        android:backgroundTint="@android:color/black"
+                        app:backgroundTint="@android:color/black"
+                        android:text="@string/viewport_center" />
+                    <TextView
+                        android:id="@+id/viewport_gyro_sensitivity_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+                        <Button
+                            android:id="@+id/viewport_gyro_sensitivity_minus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:contentDescription="@string/viewport_gyro_sensitivity_minus"
+                            android:text="−" />
+                        <Button
+                            android:id="@+id/viewport_gyro_sensitivity_plus"
+                            android:layout_width="0dp"
+                            android:layout_weight="1"
+                            android:layout_height="48dp"
+                            android:textColor="@android:color/white"
+                            android:backgroundTint="@android:color/black"
+                            app:backgroundTint="@android:color/black"
+                            android:contentDescription="@string/viewport_gyro_sensitivity_plus"
+                            android:text="+" />
+                    </LinearLayout>
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
