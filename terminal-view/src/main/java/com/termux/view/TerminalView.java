@@ -138,15 +138,38 @@ public final class TerminalView extends View {
         invalidate();
     }
 
+    private Runnable mViewportZoomChangedListener;
+
+    public void setViewportZoom(float zoom) {
+        scaleViewport(getWidth() / 2f, getHeight() / 2f, zoom / mViewport.zoom);
+    }
+
+    public float getViewportZoom() { return mViewport.zoom; }
+
+    public void setViewportZoomChangedListener(Runnable listener) {
+        mViewportZoomChangedListener = listener;
+        if (listener != null) listener.run();
+    }
+
     public void zoomViewport(float factor) {
         stopTextSelectionMode();
         if (mFixedViewport) scaleViewport(getWidth() / 2f, getHeight() / 2f, factor);
     }
 
+    /** Adjust zoom by percentage points, preserving the visible center. */
+    public void changeViewportZoomPercent(int delta) {
+        if (!mFixedViewport) return;
+        stopTextSelectionMode();
+        setViewportZoom(mViewport.zoom + delta / 100f);
+    }
+
     private void scaleViewport(float focusX, float focusY, float factor) {
         mViewport.scale(focusX, focusY, factor);
+        getContext().getSharedPreferences("terminal_viewport", Context.MODE_PRIVATE)
+            .edit().putFloat("zoom", mViewport.zoom).apply();
         clampViewport();
         invalidate();
+        if (mViewportZoomChangedListener != null) mViewportZoomChangedListener.run();
     }
 
     private void clampViewport() {
@@ -228,6 +251,7 @@ public final class TerminalView extends View {
         mFixedViewport = viewport.getBoolean("enabled", false);
         mFixedColumns = Math.max(4, Math.min(500, viewport.getInt("columns", 200)));
         mFixedRows = Math.max(4, Math.min(300, viewport.getInt("rows", 80)));
+        mViewport.zoom = Math.max(0.1f, Math.min(8f, viewport.getFloat("zoom", 1f)));
         mGestureRecognizer = new GestureAndScaleRecognizer(context, new GestureAndScaleRecognizer.Listener() {
 
             boolean scrolledWithFinger;

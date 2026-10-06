@@ -539,6 +539,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         mTerminalView = findViewById(R.id.terminal_view);
         mTerminalView.setTerminalViewClient(mTermuxTerminalViewClient);
         mTerminalView.setMirrorView(findViewById(R.id.terminal_mirror_view));
+        initializeViewportDefaults(false);
         mPanSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         mPanGyroscope = mPanSensorManager == null ? null
             : mPanSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
@@ -582,13 +583,17 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 controls.post(() -> controls.fullScroll(View.FOCUS_DOWN));
             }
         });
-        findViewById(R.id.viewport_zoom_minus).setOnClickListener(v -> mTerminalView.zoomViewport(0.8f));
-        findViewById(R.id.viewport_zoom_plus).setOnClickListener(v -> mTerminalView.zoomViewport(1.25f));
+        findViewById(R.id.viewport_zoom_minus).setOnClickListener(v -> mTerminalView.changeViewportZoomPercent(-3));
+        findViewById(R.id.viewport_zoom_plus).setOnClickListener(v -> mTerminalView.changeViewportZoomPercent(3));
+        mTerminalView.setViewportZoomChangedListener(() ->
+            ((TextView) findViewById(R.id.viewport_zoom_label)).setText(
+                getString(R.string.viewport_zoom_value, mTerminalView.getViewportZoom() * 100f)));
         findViewById(R.id.viewport_pan_left).setOnClickListener(v -> mTerminalView.panViewport(-1, 0));
         findViewById(R.id.viewport_pan_right).setOnClickListener(v -> mTerminalView.panViewport(1, 0));
         findViewById(R.id.viewport_pan_up).setOnClickListener(v -> mTerminalView.panViewport(0, -1));
         findViewById(R.id.viewport_pan_down).setOnClickListener(v -> mTerminalView.panViewport(0, 1));
 
+        applyViewportSettings();
         initializeAdjustmentDefaults(false);
         setAdjustmentControls();
         findViewById(R.id.toggle_display_adjustments).setOnClickListener(v -> {
@@ -600,8 +605,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         });
         findViewById(R.id.reset_display_adjustments).setOnClickListener(v -> {
             initializeAdjustmentDefaults(true);
+            initializeViewportDefaults(true);
+            applyViewportSettings();
             getSharedPreferences("terminal_font_sizes", MODE_PRIVATE).edit()
-                .putInt("portrait", getDefaultPortraitFontSize()).apply();
+                .putInt("portrait", getDefaultPortraitFontSize()).remove("landscape").apply();
             setAdjustmentControls();
             updateTerminalOrientation(getResources().getConfiguration());
         });
@@ -670,6 +677,39 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         updateFixedViewportDimensions();
     }
 
+    private void initializeViewportDefaults(boolean reset) {
+        android.content.SharedPreferences preferences = getSharedPreferences("terminal_viewport", MODE_PRIVATE);
+        android.content.SharedPreferences.Editor editor = preferences.edit();
+        if (reset || !preferences.contains("columns")) editor.putInt("columns",
+            Math.max(4, Math.min(500, getResources().getInteger(R.integer.default_viewport_columns))));
+        if (reset || !preferences.contains("rows")) editor.putInt("rows",
+            Math.max(4, Math.min(300, getResources().getInteger(R.integer.default_viewport_rows))));
+        if (reset || !preferences.contains("enabled")) editor.putBoolean("enabled",
+            getResources().getBoolean(R.bool.default_fixed_terminal_viewport));
+        if (reset || !preferences.contains("gyroscope_pan")) editor.putBoolean("gyroscope_pan",
+            getResources().getBoolean(R.bool.default_viewport_gyroscope_pan));
+        if (reset || !preferences.contains("gyroscope_sensitivity")) editor.putInt("gyroscope_sensitivity",
+            Math.max(10, Math.min(300, getResources().getInteger(R.integer.default_viewport_gyro_sensitivity_percent))));
+        if (reset || !preferences.contains("zoom")) editor.putFloat("zoom",
+            Math.max(0.1f, Math.min(8f, getResources().getFraction(R.fraction.default_viewport_zoom_percent, 1, 1))));
+        editor.apply();
+    }
+
+    private void applyViewportSettings() {
+        android.content.SharedPreferences preferences = getSharedPreferences("terminal_viewport", MODE_PRIVATE);
+        mTerminalView.changeFixedViewportSize(
+            preferences.getInt("columns", 200) - mTerminalView.getFixedColumns(),
+            preferences.getInt("rows", 80) - mTerminalView.getFixedRows());
+        mTerminalView.setFixedViewportEnabled(preferences.getBoolean("enabled", false));
+        mTerminalView.setViewportZoom(preferences.getFloat("zoom", 1f));
+        mGyroscopeSensitivityPercent = preferences.getInt("gyroscope_sensitivity", 100);
+        mGyroscopePan.setSensitivity(mGyroscopeSensitivityPercent / 100f);
+        mGyroscopePan.reset();
+        mGyroscopePanEnabled = mPanGyroscope != null && preferences.getBoolean("gyroscope_pan", false);
+        ((android.widget.CheckBox) findViewById(R.id.viewport_gyroscope_toggle)).setChecked(mGyroscopePanEnabled);
+        updateViewportControls();
+    }
+
     private void changeFixedViewportDimensions(int columnsDelta, int rowsDelta) {
         mTerminalView.changeFixedViewportSize(columnsDelta, rowsDelta);
         updateFixedViewportDimensions();
@@ -734,8 +774,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         android.content.SharedPreferences preferences = getSharedPreferences("terminal_font_sizes", MODE_PRIVATE);
         int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
         int portrait = preferences.getInt("portrait", getDefaultPortraitFontSize());
-        int percentage = getResources().getInteger(R.integer.default_landscape_font_size_percent);
-        int landscapeDefault = Math.max(limits[1], Math.round(portrait * percentage / 100f));
+        int landscapeDefault = Math.max(limits[1], Math.min(limits[2],
+            getResources().getInteger(R.integer.default_landscape_font_size_px)));
         android.content.SharedPreferences.Editor editor = preferences.edit();
         if (!preferences.contains("portrait")) editor.putInt("portrait", portrait);
         if (!preferences.contains("landscape")) editor.putInt("landscape", landscapeDefault);
@@ -759,8 +799,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
 
     private int getDefaultPortraitFontSize() {
         int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
-        int size = Math.round(getResources().getInteger(R.integer.default_portrait_font_size_dp)
-            * getResources().getDisplayMetrics().density);
+        int size = getResources().getInteger(R.integer.default_portrait_font_size_px);
         return Math.max(limits[1], Math.min(limits[2], size));
     }
 
@@ -769,7 +808,7 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             .getInt(getTerminalFontSizeKey(), getDefaultPortraitFontSize());
         ((TextView) findViewById(R.id.portrait_font_size_label)).setText(
             getString(R.string.portrait_font_size_value,
-                size / getResources().getDisplayMetrics().density));
+                size));
         int[] limits = TermuxAppSharedPreferences.getDefaultFontSizes(this);
         findViewById(R.id.portrait_font_size_minus).setEnabled(size > limits[1]);
         findViewById(R.id.portrait_font_size_plus).setEnabled(size < limits[2]);
@@ -827,20 +866,47 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         }
     }
 
+    /** Convert an XML percentage to the controls' internal half-percent steps. */
+    private int getDefaultPercentageSteps(int resourceId) {
+        return Math.round(getResources().getFraction(resourceId, 1, 1) * 200f);
+    }
+
     private void initializeAdjustmentDefaults(boolean reset) {
         android.content.SharedPreferences preferences = getSharedPreferences("vr_alignment", MODE_PRIVATE);
         android.content.SharedPreferences.Editor editor = preferences.edit();
-        String[] keys = { "portrait_screen_padding", "screen_padding", "eye_padding", "left_inner_padding",
-            "right_inner_padding", "alignment_steps" };
+        if (!reset) {
+            float density = getResources().getDisplayMetrics().density;
+            View screen = findViewById(R.id.activity_termux_root_relative_layout);
+            int width = screen.getWidth() > 0 ? screen.getWidth()
+                : getResources().getDisplayMetrics().widthPixels;
+            int general = Math.round(preferences.getInt("screen_padding", 0) * density);
+            int available = Math.max(0, width - 2 * general);
+            int side = Math.round(available * preferences.getInt("eye_padding", 0) * 0.005f);
+            int eyeWidth = Math.max(0, (available - 2 * side) / 2);
+            String[] legacyKeys = { "portrait_screen_padding", "screen_padding", "eye_padding",
+                "left_inner_padding", "right_inner_padding" };
+            float[] multipliers = { density, density, available * 0.005f,
+                eyeWidth * 0.005f, eyeWidth * 0.005f };
+            for (int i = 0; i < legacyKeys.length; i++) {
+                String pixelKey = legacyKeys[i] + "_px";
+                if (!preferences.contains(pixelKey) && preferences.contains(legacyKeys[i]))
+                    editor.putInt(pixelKey, Math.max(0, Math.min(2000,
+                        Math.round(preferences.getInt(legacyKeys[i], 0) * multipliers[i]))));
+            }
+            editor.apply();
+            editor = preferences.edit();
+        }
+        String[] keys = { "portrait_screen_padding_px", "screen_padding_px", "eye_padding_px", "left_inner_padding_px",
+            "right_inner_padding_px", "alignment_steps" };
         int[] defaults = {
-            getResources().getInteger(R.integer.default_portrait_screen_padding_dp),
-            getResources().getInteger(R.integer.default_screen_padding_dp),
-            getResources().getInteger(R.integer.default_side_padding_steps),
-            getResources().getInteger(R.integer.default_left_inner_padding_steps),
-            getResources().getInteger(R.integer.default_right_inner_padding_steps),
-            50 + getResources().getInteger(R.integer.default_vr_alignment_steps)
+            getResources().getInteger(R.integer.default_portrait_screen_padding_px),
+            getResources().getInteger(R.integer.default_screen_padding_px),
+            getResources().getInteger(R.integer.default_side_padding_px),
+            getResources().getInteger(R.integer.default_left_inner_padding_px),
+            getResources().getInteger(R.integer.default_right_inner_padding_px),
+            50 + getDefaultPercentageSteps(R.fraction.default_vr_alignment_percent)
         };
-        int[] maximums = { 120, 120, 80, 80, 80, 100 };
+        int[] maximums = { 2000, 2000, 2000, 2000, 2000, 100 };
         for (int i = 0; i < keys.length; i++) {
             if (reset || !preferences.contains(keys[i])) {
                 int value = defaults[i];
@@ -856,25 +922,25 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
         updateTerminalFontSizeLabel();
         findViewById(R.id.portrait_font_size_minus).setOnClickListener(v -> changeTerminalFontSize(false));
         findViewById(R.id.portrait_font_size_plus).setOnClickListener(v -> changeTerminalFontSize(true));
-        setAdjustmentButtons("portrait_screen_padding", 120,
-            getResources().getInteger(R.integer.default_portrait_screen_padding_dp),
+        setAdjustmentButtons("portrait_screen_padding_px", 2000,
+            getResources().getInteger(R.integer.default_portrait_screen_padding_px),
             R.id.portrait_screen_padding_label, R.string.portrait_screen_padding_value,
             R.id.portrait_screen_padding_minus, R.id.portrait_screen_padding_plus,
             false, value -> mPortraitScreenPadding = value);
-        setAdjustmentButtons("screen_padding", 120, getResources().getInteger(R.integer.default_screen_padding_dp), R.id.screen_padding_label,
+        setAdjustmentButtons("screen_padding_px", 2000, getResources().getInteger(R.integer.default_screen_padding_px), R.id.screen_padding_label,
             R.string.screen_padding_value, R.id.screen_padding_minus, R.id.screen_padding_plus,
             false, value -> mScreenPadding = value);
-        setAdjustmentButtons("eye_padding", 80, getResources().getInteger(R.integer.default_side_padding_steps), R.id.eye_padding_label,
+        setAdjustmentButtons("eye_padding_px", 2000, getResources().getInteger(R.integer.default_side_padding_px), R.id.eye_padding_label,
             R.string.eye_padding_value, R.id.eye_padding_minus, R.id.eye_padding_plus,
-            true, value -> mSidePadding = value);
-        setAdjustmentButtons("left_inner_padding", 80, getResources().getInteger(R.integer.default_left_inner_padding_steps), R.id.left_inner_padding_label,
+            false, value -> mSidePadding = value);
+        setAdjustmentButtons("left_inner_padding_px", 2000, getResources().getInteger(R.integer.default_left_inner_padding_px), R.id.left_inner_padding_label,
             R.string.left_inner_padding_value, R.id.left_inner_padding_minus, R.id.left_inner_padding_plus,
-            true, value -> mLeftInnerPadding = value);
-        setAdjustmentButtons("right_inner_padding", 80, getResources().getInteger(R.integer.default_right_inner_padding_steps), R.id.right_inner_padding_label,
+            false, value -> mLeftInnerPadding = value);
+        setAdjustmentButtons("right_inner_padding_px", 2000, getResources().getInteger(R.integer.default_right_inner_padding_px), R.id.right_inner_padding_label,
             R.string.right_inner_padding_value, R.id.right_inner_padding_minus, R.id.right_inner_padding_plus,
-            true, value -> mRightInnerPadding = value);
+            false, value -> mRightInnerPadding = value);
         setAdjustmentButtons("alignment_steps", 100,
-            50 + getResources().getInteger(R.integer.default_vr_alignment_steps), R.id.vr_alignment_label,
+            50 + getDefaultPercentageSteps(R.fraction.default_vr_alignment_percent), R.id.vr_alignment_label,
             R.string.vr_alignment_value, R.id.vr_alignment_minus, R.id.vr_alignment_plus,
             true, value -> mVrAlignment = value);
     }
@@ -901,8 +967,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             getSharedPreferences("vr_alignment", MODE_PRIVATE).edit().putInt(key, value[0]).apply();
             updateTerminalOrientation(getResources().getConfiguration());
         };
-        minus.setOnClickListener(v -> change.accept(-1));
-        plus.setOnClickListener(v -> change.accept(1));
+        int step = "screen_padding_px".equals(key) || "eye_padding_px".equals(key) ? 5 : 1;
+        minus.setOnClickListener(v -> change.accept(-step));
+        plus.setOnClickListener(v -> change.accept(step));
     }
 
     private void updateScreenPadding() {
@@ -910,11 +977,9 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             == Configuration.ORIENTATION_LANDSCAPE;
         // General padding is saved independently for each orientation.
         int general = landscape ? mScreenPadding : mPortraitScreenPadding;
-        int pixels = Math.round(general * getResources().getDisplayMetrics().density);
+        int pixels = general;
         View screen = findViewById(R.id.activity_termux_root_relative_layout);
-        int progress = mSidePadding;
-        int availableWidth = Math.max(0, screen.getWidth() - 2 * pixels);
-        int side = landscape ? Math.round(availableWidth * progress * 0.005f) : 0;
+        int side = landscape ? mSidePadding : 0;
         View toolbar = getTerminalToolbarViewPager();
         int toolbarHeight = toolbar != null && toolbar.getVisibility() == View.VISIBLE
             ? toolbar.getLayoutParams().height : 0;
@@ -931,8 +996,8 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
             == Configuration.ORIENTATION_LANDSCAPE;
         View leftEye = findViewById(R.id.terminal_eye_left);
         View rightEye = findViewById(R.id.terminal_eye_right);
-        int leftInset = landscape ? Math.round(leftEye.getWidth() * mLeftInnerPadding * 0.005f) : 0;
-        int rightInset = landscape ? Math.round(rightEye.getWidth() * mRightInnerPadding * 0.005f) : 0;
+        int leftInset = landscape ? mLeftInnerPadding : 0;
+        int rightInset = landscape ? mRightInnerPadding : 0;
         leftEye.setPadding(0, 0, leftInset, 0);
         rightEye.setPadding(rightInset, 0, 0, 0);
     }
@@ -1155,10 +1220,10 @@ public final class TermuxActivity extends AppCompatActivity implements ServiceCo
                 updateViewportControls();
                 return true;
             case MENU_VIEWPORT_ZOOM_IN:
-                mTerminalView.zoomViewport(1.25f);
+                mTerminalView.changeViewportZoomPercent(3);
                 return true;
             case MENU_VIEWPORT_ZOOM_OUT:
-                mTerminalView.zoomViewport(0.8f);
+                mTerminalView.changeViewportZoomPercent(-3);
                 return true;
             case CONTEXT_MENU_SELECT_URL_ID:
                 mTermuxTerminalViewClient.showUrlSelection();

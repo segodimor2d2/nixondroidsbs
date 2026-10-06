@@ -490,6 +490,11 @@
                             android:contentDescription="@string/viewport_gyro_sensitivity_plus"
                             android:text="+" />
                     </LinearLayout>
+                    <TextView
+                        android:id="@+id/viewport_zoom_label"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:paddingHorizontal="16dp" />
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

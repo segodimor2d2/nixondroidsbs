@@ -3,25 +3,26 @@
     <string name="vr_alignment_value">align-vr: %1$.1f%%</string>
 
     <string name="screen_padding">allPadH</string>
-    <string name="screen_padding_value">allPadH: %1$d dp</string>
+    <string name="screen_padding_value">allPadH: %1$d px</string>
 
     <string name="eye_padding">x-side</string>
-    <string name="eye_padding_value">x-side: %1$.1f%%</string>
+    <string name="eye_padding_value">x-side: %1$d px</string>
 
     <string name="decrease_display_adjustment">decrease</string>
     <string name="increase_display_adjustment">increase</string>
 
-    <string name="left_inner_padding_value">left: %1$.1f%%</string>
-    <string name="right_inner_padding_value">right: %1$.1f%%</string>
+    <string name="left_inner_padding_value">left: %1$d px</string>
+    <string name="right_inner_padding_value">right: %1$d px</string>
 
     <string name="reset_display_adjustments">reset</string>
     <string name="show_display_adjustments">[VR]</string>
     <string name="hide_display_adjustments">[VR]</string>
-    <string name="portrait_screen_padding_value">allPadV: %1$d dp</string>
-    <string name="portrait_font_size_value">fontSize: %1$.1f dp</string>
+    <string name="portrait_screen_padding_value">allPadV: %1$d px</string>
+    <string name="portrait_font_size_value">fontSize: %1$d px</string>
     <string name="fixed_terminal_viewport">fix term</string>
-    <string name="viewport_zoom_in">zoom +</string>
-    <string name="viewport_zoom_out">zoom -</string>
+    <string name="viewport_zoom_value">zoom: %1$.1f%%</string>
+    <string name="viewport_zoom_in">+</string>
+    <string name="viewport_zoom_out">-</string>
     <string name="viewport_pan_left">Mover visualização para a esquerda</string>
     <string name="viewport_pan_up">Mover visualização para cima</string>
     <string name="viewport_pan_down">Mover visualização para baixo</string>

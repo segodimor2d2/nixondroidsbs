@@ -1,24 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Initial portrait font size in dp. Existing zoom is preserved; Reset restores this value. -->
-    <integer name="default_portrait_font_size_dp">12</integer>
-    <!-- Initial landscape font size as a percentage of the portrait font size.
-         Each orientation keeps its own zoom after the first initialization. -->
-    <integer name="default_landscape_font_size_percent">70</integer>
-    <!-- Applied on first installation and when the user presses Reset.
-         Existing saved settings are preserved when updating the app. -->
 
-    <!-- General padding in dp: 0 to 120. -->
-    <integer name="default_screen_padding_dp">100</integer>
-    <!-- allPadV: independent general padding for portrait, in dp (0 to 120). -->
-    <integer name="default_portrait_screen_padding_dp">5</integer>
+    <!-- fontSize em retrato 23 px-->
+    <integer name="default_portrait_font_size_px">23</integer>
+    <!-- fontSize em paisagem 13 px -->
+    <integer name="default_landscape_font_size_px">13</integer>
 
-    <!-- Padding steps: each step is 0.5%; 0 to 80 means 0% to 40%. -->
-    <integer name="default_side_padding_steps">10</integer>
-    <integer name="default_left_inner_padding_steps">18</integer>
-    <integer name="default_right_inner_padding_steps">18</integer>
+    <!-- allPadV — padding geral em retrato 28 px-->
+    <integer name="default_portrait_screen_padding_px">28</integer>
+    <!-- allPadH — padding geral em paisagem -->
+    <integer name="default_screen_padding_px">234</integer>
 
-    <!-- Signed VR alignment steps: each step is 0.5%.
-         -50 to 50 means -25% to 25%; 0 means no offset. -->
-    <integer name="default_vr_alignment_steps">0</integer>
+    <!-- x-side — padding lateral -->
+    <integer name="default_side_padding_px">350</integer>
+
+    <!-- left — padding interno do terminal esquerdo 14 px-->
+    <integer name="default_left_inner_padding_px">6</integer>
+    <!-- left — padding interno do terminal esquerdo 14 px-->
+    <integer name="default_right_inner_padding_px">6</integer>
+
+    <!-- right — padding interno do terminal direito XXXXXX -->
+    <fraction name="default_vr_alignment_percent">0%</fraction>
+
+    <!-- fix term -->
+    <bool name="default_fixed_terminal_viewport">false</bool>
+
+    <!-- giro -->
+    <bool name="default_viewport_gyroscope_pan">false</bool>
+
+    <!-- sens -->
+    <integer name="default_viewport_gyro_sensitivity_percent">200</integer>
+
+    <!-- zoom -->
+    <fraction name="default_viewport_zoom_percent">82%</fraction>
+
+    <!-- Colunas -->
+    <integer name="default_viewport_columns">211</integer>
+    <!-- Linhas -->
+    <integer name="default_viewport_rows">56</integer>
+
+
 </resources>
